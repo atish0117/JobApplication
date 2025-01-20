@@ -1,0 +1,54 @@
+.how-it-works {
+    padding: 40px;
+    background-color: white;
+    color: black;
+    font-family: 'Courier', monospace;
+  }
+  
+  .section-title {
+    font-size: 2.5em;
+    text-align: center;
+    color: transparent;
+    -webkit-text-stroke: 1px black;
+    margin-bottom: 40px;
+  }
+  
+  .steps {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .step-card {
+    border: 1px solid black;
+    padding: 20px;
+    flex: 1 1 calc(45% - 20px);
+    text-align: center;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .step-card:hover {
+    transform: scale(1.05);
+    background-color: black;
+    color: white;
+  }
+  
+  .step-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    border: 1px solid black;
+  }
+  
+  .step-title {
+    font-size: 1.5em;
+    margin: 10px 0;
+  }
+  
+  .step-description {
+    font-size: 1.2em;
+  }
+  

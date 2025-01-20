@@ -1,0 +1,13 @@
+/* Style for the custom cursor */
+.custom-cursor {
+    width:  40px;
+    height: 40px;
+    border: 2px solid #FFD700; /* Yellow border */
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease-out;
+    z-index: 1000;
+  }
+  
