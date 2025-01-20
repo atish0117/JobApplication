@@ -5,13 +5,13 @@ import client from "../../appWrite/AppwriteConfigPost";
 import config from "../../appWrite/config";
 
 // Create Profile
+const databases = new Databases(client);
+const storage = new Storage(client);
 export const createProfile = createAsyncThunk(
   "form/createProfile",
   async ({ formData, role }, { rejectWithValue }) => {
     try {
       console.log("create profile called")
-      const databases = new Databases(client);
-      const storage = new Storage(client);
       console.log("formdata and role ",formData,role)
 
       // Upload profile image
@@ -64,11 +64,6 @@ export const fetchUserProfile = createAsyncThunk(
       if (!email) {
         throw new Error("Email not found in localStorage");
       }
-      console.log("Database ID:", config.appwriteDatabaseId);
-console.log("Employee Collection ID:", config.appwriteCollectionIdJobaryProfileId);
-console.log("Employer Collection ID:", config.appwriteCollectionIdEmployerProfileId);
-console.log("Query:", Query.equal("email", email));
-
 
       // Fetch profiles from Employee collection
       const employeeResponse = await databases.listDocuments(
@@ -76,7 +71,6 @@ console.log("Query:", Query.equal("email", email));
         config.appwriteCollectionIdJobaryProfileId,
         [Query.equal("email", email)]
       );
-      console.log("first res",employeeResponse)
 
       if (employeeResponse.documents.length > 0) {
         const profile = employeeResponse.documents[0];
@@ -97,7 +91,7 @@ console.log("Query:", Query.equal("email", email));
         config.appwriteCollectionIdEmployerProfileId,
         [Query.equal("email", email)]
       );
-      console.log("second res",employerResponse)
+      
 
 
       if (employerResponse.documents.length > 0) {
@@ -145,6 +139,233 @@ export const updateSelfNote = createAsyncThunk(
     }
   }
 );
+
+// Add User  Project
+export const addProject = createAsyncThunk(
+  "form/addProject",
+  async (newProject, { rejectWithValue }) => {
+    try {
+      let thumbnailFile = null;
+
+      // Upload thumbnail
+      if (newProject.thumbnail) {
+        thumbnailFile = await storage.createFile(
+          config.appwriteBucketId,
+          ID.unique(),
+          newProject.thumbnail
+        );
+      }
+
+      // Upload additional images
+      const imageFiles = newProject.images.length
+        ? await Promise.all(
+            newProject.images.map((image) =>
+              storage.createFile(config.appwriteBucketId, ID.unique(), image)
+            )
+          )
+        : [];
+
+      // Create the project document
+      const projectResponse = await databases.createDocument(
+        config.appwriteDatabaseId,
+        config.appwriteUserProjectId,
+        ID.unique(),
+        {
+          title: newProject.title,
+          description: newProject.description,
+          technologies: newProject.technologies,
+          thumbnail: thumbnailFile ? thumbnailFile.$id : null,
+          images: imageFiles.map((file) => file.$id),
+        }
+      );
+
+      // Link project to user profile
+      const email = localStorage.getItem("Token");
+      const userResponse = await databases.listDocuments(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        [Query.equal("email", email)]
+      );
+
+      if (userResponse.documents.length > 0) {
+        const userId = userResponse.documents[0].$id;
+        const updatedProjects = [
+          ...(userResponse.documents[0].projects || []),
+          projectResponse.$id,
+        ];
+
+        await databases.updateDocument(
+          config.appwriteDatabaseId,
+          config.appwriteCollectionIdJobaryProfileId,
+          userId,
+          { projects: updatedProjects }
+        );
+      }
+
+      return { ...newProject, id: projectResponse.$id };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+//  Fetch User Projects
+export const fetchProjects = createAsyncThunk(
+  "form/fetchProjects",
+  async (_, { rejectWithValue }) => {
+    try {
+      const email = localStorage.getItem("Token");
+      const userResponse = await databases.listDocuments(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        [Query.equal("email", email)]
+      );
+
+      if (userResponse.documents.length === 0) {
+        throw new Error("User not found");
+      }
+
+      const projectIds = userResponse.documents[0].projects || [];
+      const projectDetails = await Promise.all(
+        projectIds.map((projectId) =>
+          databases.getDocument(
+            config.appwriteDatabaseId,
+            config.appwriteUserProjectId,
+            projectId
+          )
+        )
+      );
+
+      return projectDetails;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Delete User Project
+export const deleteProject = createAsyncThunk(
+  "form/deleteProject",
+  async (projectId, { rejectWithValue }) => {
+    try {
+      const project = await databases.getDocument(
+        config.appwriteDatabaseId,
+        config.appwriteUserProjectId,
+        projectId
+      );
+
+      // Delete files
+      if (project.thumbnail) {
+        await storage.deleteFile(config.appwriteBucketId, project.thumbnail);
+      }
+      if (project.images && project.images.length > 0) {
+        await Promise.all(
+          project.images.map((imageId) =>
+            storage.deleteFile(config.appwriteBucketId, imageId)
+          )
+        );
+      }
+
+      // Delete the project document
+      await databases.deleteDocument(
+        config.appwriteDatabaseId,
+        config.appwriteUserProjectId,
+        projectId
+      );
+
+      // Remove from user's profile
+      const email = localStorage.getItem("Token");
+      const userResponse = await databases.listDocuments(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        [Query.equal("email", email)]
+      );
+
+      if (userResponse.documents.length > 0) {
+        const userId = userResponse.documents[0].$id;
+        const updatedProjects = userResponse.documents[0].projects.filter(
+          (id) => id !== projectId
+        );
+
+        await databases.updateDocument(
+          config.appwriteDatabaseId,
+          config.appwriteCollectionIdJobaryProfileId,
+          userId,
+          { projects: updatedProjects }
+        );
+      }
+
+      return projectId;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Async thunk for fetching job posts
+export const fetchJobPosts = createAsyncThunk(
+  "form/fetchJobPosts",
+  async (profile, { rejectWithValue }) => {
+    try {
+      const jobPostIds = profile?.jobPosts || [];
+      const jobPostsDetails = await Promise.all(
+        jobPostIds.map((jobPostId) =>
+          databases.getDocument(
+            config.appwriteDatabaseId,
+            config.appwriteJobPostId,
+            jobPostId
+          )
+        )
+      );
+      return jobPostsDetails;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+// Async thunk for deleting a job post
+export const deleteJobPost = createAsyncThunk(
+  "form/deleteJobPost",
+  async ({ jobPostId, email }, { rejectWithValue, dispatch }) => {
+    try {
+      // Delete the Job Post document
+      await databases.deleteDocument(
+        config.appwriteDatabaseId,
+        config.appwriteJobPostId,
+        jobPostId
+      );
+      console.log(`Job Post ${jobPostId} deleted successfully.`);
+      // Fetch the employer profile
+      const userResponse = await databases.listDocuments(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdEmployerProfileId,
+        [Query.equal("email", email)]
+      );
+      console.log(`Job Post ${jobPostId} not found, skipping.`);
+      if (userResponse.documents.length > 0) {
+        const userId = userResponse.documents[0].$id;
+
+        // Update the jobPosts array in the employer profile
+        const updatedJobPosts = (
+          userResponse.documents[0].jobPosts || []
+        ).filter((postId) => postId !== jobPostId);
+
+        await databases.updateDocument(
+          config.appwriteDatabaseId,
+          config.appwriteCollectionIdEmployerProfileId,
+          userId,
+          { jobPosts: updatedJobPosts }
+        );
+      }
+
+      return jobPostId; // Return the deleted jobPostId
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 
 // Update Profile
 export const updateProfile = createAsyncThunk(
@@ -197,6 +418,9 @@ export const deleteProfile = createAsyncThunk(
 const formSlice = createSlice({
   name: "form",
   initialState: {
+    projects: [],
+    jobPosts: [],
+    status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
     profile: null,
     loading: false,
     error: null,
@@ -248,6 +472,77 @@ const formSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+       // Add Project
+    builder.addCase(addProject.pending, (state) => {
+      state.loading = true;
+    })
+    builder.addCase(addProject.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects.push(action.payload);
+    })
+    builder.addCase(addProject.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    })
+
+       // Fetch Projects
+       builder.addCase(fetchProjects.pending, (state) => {
+        state.loading = true;
+      })
+      builder.addCase(fetchProjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload;
+      })
+      builder.addCase(fetchProjects.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+       // Delete Project
+    builder.addCase(deleteProject.pending, (state) => {
+      state.loading = true;
+    })
+    builder.addCase(deleteProject.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects = state.projects.filter(
+        (project) => project.id !== action.payload
+      );
+    })
+    builder.addCase(deleteProject.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    })
+    // fetch jobpost
+    builder
+    .addCase(fetchJobPosts.pending, (state) => {
+      state.status = "loading";
+    })
+    .addCase(fetchJobPosts.fulfilled, (state, action) => {
+      state.status = "succeeded";
+      state.jobPosts = action.payload;
+    })
+    .addCase(fetchJobPosts.rejected, (state, action) => {
+      state.status = "failed";
+      state.error = action.payload;
+    })
+      // delete jobpost
+  builder
+    .addCase(deleteJobPost.pending, (state) => {
+      state.status = "loading";
+    })
+    .addCase(deleteJobPost.fulfilled, (state, action) => {
+      state.status = "succeeded";
+      // Filter out the deleted job post by ID
+      state.jobPosts = state.jobPosts.filter(
+        (jobPost) => jobPost.$id !== action.payload
+      );
+    })
+    .addCase(deleteJobPost.rejected, (state, action) => {
+      state.status = "failed";
+      state.error = action.payload;
+    })
+
 
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;

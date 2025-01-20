@@ -7,8 +7,7 @@ import client from "../appWrite/AppwriteConfigPost";
 
 const SearchComponent = () => {
   const dispatch = useDispatch();
-  const { profile, role, loading, error } = useSelector((state) => state.form);
-  console.log("search profile", profile, role)
+  const { role, loading, error } = useSelector((state) => state.form);
   const [jobs, setJobs] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [results, setResults] = useState([]);
@@ -64,17 +63,18 @@ const SearchComponent = () => {
   const handleSearch = () => {
     if (role === "Employee") {
       const filteredJobs = jobs.filter((job) => {
+        console.log("jobs",job)
         return (
           (searchParams.title
-            ? job?.title?.toLowerCase().includes(searchParams.title.toLowerCase())
+            ? job?.jobTitle?.toLowerCase().includes(searchParams.title.toLowerCase())
             : true) &&
           (searchParams.location
             ? job?.location?.toLowerCase().includes(searchParams.location.toLowerCase())
             : true) &&
           (searchParams.company
-            ? job?.company?.toLowerCase().includes(searchParams.company.toLowerCase())
+            ? job?.companyName?.toLowerCase().includes(searchParams.company.toLowerCase())
             : true) &&
-          (searchParams.jobType ? job?.jobType === searchParams.jobType : true) &&
+          (searchParams.jobType ? job?.time === searchParams.jobType : true) &&
           (searchParams.experience ? job?.experience === searchParams.experience : true) &&
           (searchParams.salary ? job?.salary >= parseInt(searchParams.salary, 10) : true)
         );

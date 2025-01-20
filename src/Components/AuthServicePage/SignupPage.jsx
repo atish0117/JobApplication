@@ -52,9 +52,9 @@ const SignupPage = () => {
   return (
     <div className="h-screen flex justify-center items-center">
       {/* <h1 className="text-2xl font-bold text-center mb-4">Signup</h1> */}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit(onSubmit)}>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="  flex justify-between gap-36 border-black borde rounded-xl shadow-2xl p-14">
           {/* <label className="block text-sm font-medium mb-1">Full Name</label> */}
           <div className='flex flex-col justify-between'>

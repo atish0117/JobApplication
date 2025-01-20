@@ -35,9 +35,9 @@ const LoginPage = () => {
   return (
     <div className="  rounded shadow h-screen flex justify-center items-center">
       {/* <h1 className="text-2xl font-bold text-center mb-4">Login</h1> */}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit(onSubmit)}>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className=' flex justify-between gap-36 border-black borde rounded-xl shadow-2xl p-20'>
               <div className='flex flex-col justify-center items-center'>
                 <img src="https://colorlib.com/etc/regform/colorlib-regform-7/images/signin-image.jpg" alt="image" />
