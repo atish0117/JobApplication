@@ -27,7 +27,7 @@ import  Newprofile  from './Components/UserPage/Newprofile.jsx';
 import JobPost from './Components/UserPage/JobPost.jsx';
 import JobDetailPage from './Components/UserPage/JobDetailPage.jsx';
 import SearchComponent from './Components/SearchComponent.jsx';
-
+import ViewProfile from './Components/UserPage/ViewProfile.jsx';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -101,6 +101,10 @@ const router = createBrowserRouter([
       {
         path: "/job/:jobId",
         element: <JobDetailPage />
+      },
+      {
+        path:"/viewProfile/:candidateId",
+        element: <ViewProfile />
       },
       {
         path: "/searchcomponent",

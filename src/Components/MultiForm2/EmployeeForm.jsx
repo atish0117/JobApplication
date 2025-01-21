@@ -30,6 +30,7 @@ const EmployeeForm2 = () => {
     Address: "",
     JobStatus: "",
     college:"",
+
     skills: [{ skill: "", experience: "" }],
     profileImage: null,
     selfNote: "",
@@ -290,7 +291,7 @@ const EmployeeForm2 = () => {
                   <FaPlusCircle className="mr-2" /> Add Skill
                 </button>
               </div>
-              <div className="flex justify-between mt-8">
+              <div className="flex justify-between mt-20">
                 <button
                   type="button"
                   onClick={prevStep}
@@ -331,7 +332,7 @@ const EmployeeForm2 = () => {
                   required
                 />
               </div>
-              <div className="flex justify-between mt-40">
+              <div className="flex justify-between mt-48">
                 <button
                   type="button"
                   onClick={prevStep}
@@ -401,8 +402,28 @@ const EmployeeForm2 = () => {
               </select>
             </div>
           </div>
+                     {/* Languages */}
+          <div className="relative">
+            {/* <label className="block font-medium text-gray-700">
+              Job Status
+            </label> */}
+            <div className="relative mt-4">
+              <GrStatusInfo className="absolute left-2 top-2.5 h-5 w-5 text-gray-400" />
+              <select
+                name="JobStatus"
+                value={formData.languages}
+                onChange={handleInputChange}
+                className="block w-full border border-gray-300 rounded-md pl-10 p-2"
+                required
+              >
+                <option value="">Select Language</option>
+                <option value="Active">Hindi</option>
+                <option value="Inactive">English</option>
+              </select>
+            </div>
+          </div>
 
-              <div className="flex justify-between mt-24">
+              <div className="flex justify-between mt-16">
                 <button
                   type="button"
                   onClick={prevStep}

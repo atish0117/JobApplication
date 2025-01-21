@@ -28,6 +28,7 @@ const UserHomePage = () => {
   const [jobPosts, setJobPosts] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const { profile, role, loading, error,profiles, status, } = useSelector((state) => state.form);
     console.log("all user profile",profiles)
   
@@ -60,6 +61,13 @@ const UserHomePage = () => {
     dispatch(fetchAllUserProfiles());
   }, [dispatch]);
 
+  const handleCandidateClick = (candidate) => {
+    setSelectedCandidate(candidate); // Set the selected candidate's details
+  };
+
+  const handleBackToProfiles = () => {
+    setSelectedCandidate(null); // Clear the selected candidate and return to the list view
+  };
   if (status === "loading") return <p>Loading user profiles...</p>;
   // if (status === "failed") return <p>Error: {error}</p>;
 
@@ -230,30 +238,86 @@ const UserHomePage = () => {
           )}
           {role === "Employer" && (
           <div className="max-w-full mx-auto p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
-          <h2 className="text-2xl font-semibold text-center mb-6 underline">
-            Candidate Profiles
-          </h2>
-          {profiles?.length === 0 ? (
-            <p className="text-center text-gray-500">No user profiles found.</p>
+          {selectedCandidate ? (
+            // Candidate Full Details View
+            <div>
+              <button
+                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={handleBackToProfiles}
+              >
+                Back to Profiles
+              </button>
+              <h2 className="text-2xl font-semibold text-center mb-6 underline">
+                {selectedCandidate.FullName}'s Full Details
+              </h2>
+              <p className="text-sm text-gray-600">
+                <strong>Email:</strong> {selectedCandidate.email}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Skills:</strong>{" "}
+                {selectedCandidate.skills?.join(", ") || "N/A"}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Experience:</strong> {selectedCandidate.experience || "N/A"}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Self-Note:</strong> {selectedCandidate.selfNote || "N/A"}
+              </p>
+              <div>
+                <h3 className="text-xl font-bold mt-4 underline">
+                  Projects
+                </h3>
+                {selectedCandidate.projects?.length > 0 ? (
+                  <ul className="list-disc ml-6">
+                    {selectedCandidate.projects.map((project, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        {project}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-600">No projects found.</p>
+                )}
+              </div>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {profiles?.map((profiles) => (
-                <div
-                  key={profiles?.$id}
-                  className="p-4 border border-gray-300 rounded-md shadow-md"
-                >
-                  <h3 className="text-xl font-bold"><strong className="text-sm text-gray-600">Name:</strong>{profiles?.FullName}</h3>
-                  <p className="text-sm text-gray-600">
-                    <strong>Email:</strong> {profiles?.email}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Skills:</strong> {profiles?.skills?.join(", ") || "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Experience:</strong> {profiles?.experience || "N/A"}
-                  </p>
+            // Candidate List View
+            <div>
+              <h2 className="text-2xl font-semibold text-center mb-6 underline">
+                Candidate Profiles
+              </h2>
+              {profiles?.length === 0 ? (
+                <p className="text-center text-gray-500">
+                  No user profiles found.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {profiles?.map((profile) => (
+                    <Link
+                    to={`/viewProfile/${profile?.$id}`}
+                      key={profile?.$id}
+                      className="p-4 border border-gray-300 rounded-md shadow-md cursor-pointer"
+                      onClick={() => handleCandidateClick(profile)}
+                    >
+                      <h3 className="text-xl font-bold">
+                        <strong className="text-sm text-gray-600">Name:</strong>{" "}
+                        {profile?.FullName}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        <strong>Email:</strong> {profile?.email}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <strong>Skills:</strong>{" "}
+                        {profile?.skills?.join(", ") || "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <strong>Experience:</strong>{" "}
+                        {profile?.experience || "N/A"}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

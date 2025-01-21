@@ -119,7 +119,7 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
-        // only update SelfNote Function
+// only update SelfNote Function
 export const updateSelfNote = createAsyncThunk(
   "form/updateSelfNote",
   async ({ userId, newSelfNote }, { rejectWithValue }) => {
@@ -212,13 +212,13 @@ export const addProject = createAsyncThunk(
 //  Fetch User Projects
 export const fetchProjects = createAsyncThunk(
   "form/fetchProjects",
-  async (_, { rejectWithValue }) => {
+  async (candidateId, { rejectWithValue }) => {
     try {
-      const email = localStorage.getItem("Token");
+      // const email = localStorage.getItem("Token");
       const userResponse = await databases.listDocuments(
         config.appwriteDatabaseId,
         config.appwriteCollectionIdJobaryProfileId,
-        [Query.equal("email", email)]
+        [Query.equal("$id", candidateId)]
       );
 
       if (userResponse.documents.length === 0) {
@@ -366,7 +366,6 @@ export const deleteJobPost = createAsyncThunk(
     }
   }
 );
-
 
 // Update Profile
 export const updateProfile = createAsyncThunk(
