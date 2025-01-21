@@ -26,7 +26,7 @@ const LoginPage = () => {
         if (result.type === "auth/login/fulfilled") {
           // Save the object to localStorage
           localStorage.setItem("Token", data.email);
-          navigate("/profilepage");
+          navigate("/newprofile");
         }
       })
       .catch((err) => console.error(err));

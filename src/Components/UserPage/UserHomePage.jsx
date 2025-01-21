@@ -18,7 +18,7 @@ import { IoIosAddCircleOutline } from "react-icons/io";
 import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserProfile } from "../../Redux/features/PostServiceF";
+import { fetchUserProfile,fetchAllUserProfiles } from "../../Redux/features/PostServiceF";
 import { useNavigate } from "react-router-dom";
 import config from "../../appWrite/config";
 import { Databases } from "appwrite";
@@ -28,7 +28,9 @@ const UserHomePage = () => {
   const [jobPosts, setJobPosts] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { profile, role, loading, error } = useSelector((state) => state.form);
+  const { profile, role, loading, error,profiles, status, } = useSelector((state) => state.form);
+    console.log("all user profile",profiles)
+  
 
   const fetchJobPosts = async () => {
     try {
@@ -51,6 +53,15 @@ const UserHomePage = () => {
     fetchJobPosts();
   }, [dispatch]);
   console.log("data", profile);
+
+
+  useEffect(() => {
+
+    dispatch(fetchAllUserProfiles());
+  }, [dispatch]);
+
+  if (status === "loading") return <p>Loading user profiles...</p>;
+  // if (status === "failed") return <p>Error: {error}</p>;
 
   return (
     <>
@@ -153,7 +164,7 @@ const UserHomePage = () => {
           {/* <JobPost role={role} /> */}
 
           {/* Search Bar */}
-          <div className="search-bar w-full flex justify-evenly mb-5">
+          <div className="search-bar w-full flex justify-between mb-5">
             <Link to={"/jobpost"}>
               {profile?.role === "Employer" ? (
                 <button className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white text-sm md:text-base lg:text-lg rounded-lg hover:bg-slate-700 transition-all duration-300 w-full md:w-[180px]">
@@ -164,25 +175,23 @@ const UserHomePage = () => {
                 ""
               )}
             </Link>
-            <span className="flex items-center gap-2 p-2 w-full lg:w-1/3 rounded border border-gray-500">
-              <input
-                type="text"
-                className="focus:outline-none px-3 py-1 grow"
-                placeholder="Search for job / post"
-              />
-              <CiSearch className="text-xl lg:text-3xl" />
+            <Link to={"/searchcomponent"}>
+            <span className="flex items-center gap-2 p-2 rounded-full border bg-slate-600 hover:bg-slate-700 transition-all duration-300 border-gray-500">
+              <CiSearch className="text-xl font-extrabold text-white lg:text-3xl" />
             </span>
+            </Link>
           </div>
 
-          {/* Filter Section */}
+          
+
+          {/* Job Listings */}
+          {role === "Employee" && (
+          <div className="skill-job-list flex flex-col">
           <div className="filter flex justify-between items-center mb-5">
             <span className="text-lg lg:text-3xl">
               Jobs matching your skills
             </span>
           </div>
-
-          {/* Job Listings */}
-          <div className="skill-job-list flex flex-col">
             { jobPosts?.map((jobs, idx) => (
                 <div
                   key={idx}
@@ -218,6 +227,38 @@ const UserHomePage = () => {
                 </div>
               ))}
           </div>
+          )}
+          {role === "Employer" && (
+          <div className="max-w-full mx-auto p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
+          <h2 className="text-2xl font-semibold text-center mb-6 underline">
+            Candidate Profiles
+          </h2>
+          {profiles?.length === 0 ? (
+            <p className="text-center text-gray-500">No user profiles found.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {profiles?.map((profiles) => (
+                <div
+                  key={profiles?.$id}
+                  className="p-4 border border-gray-300 rounded-md shadow-md"
+                >
+                  <h3 className="text-xl font-bold"><strong className="text-sm text-gray-600">Name:</strong>{profiles?.FullName}</h3>
+                  <p className="text-sm text-gray-600">
+                    <strong>Email:</strong> {profiles?.email}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Skills:</strong> {profiles?.skills?.join(", ") || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Experience:</strong> {profiles?.experience || "N/A"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+          )}
+
         </div>
       </div>
       <footer className="bg-gray-100 border-t border-gray-300 p-10 mt-6">

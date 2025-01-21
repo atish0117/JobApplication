@@ -11,8 +11,10 @@ import {
   FaHome,
   FaPlusCircle,
   FaTrash,
+  FaBriefcase,
+  FaSchool
 } from "react-icons/fa";
-
+import { GrStatusInfo } from "react-icons/gr";
 const EmployeeForm2 = () => {
   const [step, setStep] = useState(1);
   const dispatch = useDispatch();
@@ -27,6 +29,7 @@ const EmployeeForm2 = () => {
     Education: "",
     Address: "",
     JobStatus: "",
+    college:"",
     skills: [{ skill: "", experience: "" }],
     profileImage: null,
     selfNote: "",
@@ -210,7 +213,7 @@ const EmployeeForm2 = () => {
 
           {step === 2 && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">
                 Education and Skills
               </h2>
               <div className="relative">
@@ -231,9 +234,22 @@ const EmployeeForm2 = () => {
                   <option value="PhD">PhD</option>
                 </select>
               </div>
+
+              <div className="relative mt-2">
+                <FaSchool className="absolute left-2 top-2.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="college"
+                  value={formData.college}
+                  onChange={handleInputChange}
+                  placeholder="School / College / University"
+                  className="block w-full border border-gray-300 rounded-md pl-10 p-2"
+                  required
+                />
+              </div>
               <div>
                 <label className="block text-gray-800 font-medium">Skills</label>
-                <div className="overflow-y-auto max-h-40 border border-gray-300 rounded-md p-2">
+                <div className="overflow-y-auto max-h-32 border border-gray-300 rounded-md p-2">
                   {formData.skills.map((skill, index) => (
                     <div key={index} className="flex items-center space-x-4 mt-2">
                       <input
@@ -274,7 +290,7 @@ const EmployeeForm2 = () => {
                   <FaPlusCircle className="mr-2" /> Add Skill
                 </button>
               </div>
-              <div className="flex justify-between mt-4">
+              <div className="flex justify-between mt-8">
                 <button
                   type="button"
                   onClick={prevStep}
@@ -298,7 +314,7 @@ const EmployeeForm2 = () => {
               <h2 className="text-2xl font-bold mb-4 text-gray-800">
                 Upload Profile Image
               </h2>
-              <div>
+              <div className="mt-20">
                 <label
                   htmlFor="profileImg"
                   className="block font-medium text-gray-700"
@@ -315,7 +331,7 @@ const EmployeeForm2 = () => {
                   required
                 />
               </div>
-              <div className="flex justify-between mt-4">
+              <div className="flex justify-between mt-40">
                 <button
                   type="button"
                   onClick={prevStep}
@@ -339,7 +355,7 @@ const EmployeeForm2 = () => {
               <h2 className="text-2xl font-bold mb-4 text-gray-800">
                 Contact Details
               </h2>
-              <div className="relative">
+              <div className="relative mt-8">
                 <FaPhone className="absolute left-2 top-2.5 h-5 w-5 text-gray-400" />
                 <input
                   type="tel"
@@ -351,7 +367,7 @@ const EmployeeForm2 = () => {
                   required
                 />
               </div>
-              <div className="relative mt-4">
+              <div className="relative mt-8">
                 <FaEnvelope className="absolute left-2 top-2.5 h-5 w-5 text-gray-400" />
                 <input
                   type="email"
@@ -363,7 +379,30 @@ const EmployeeForm2 = () => {
                   required
                 />
               </div>
-              <div className="flex justify-between mt-4">
+
+                     {/* Job Status */}
+          <div className="relative">
+            {/* <label className="block font-medium text-gray-700">
+              Job Status
+            </label> */}
+            <div className="relative mt-8">
+              <GrStatusInfo className="absolute left-2 top-2.5 h-5 w-5 text-gray-400" />
+              <select
+                name="JobStatus"
+                value={formData.JobStatus}
+                onChange={handleInputChange}
+                className="block w-full border border-gray-300 rounded-md pl-10 p-2"
+                required
+              >
+                <option value="">Select job status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+            </div>
+          </div>
+
+              <div className="flex justify-between mt-24">
                 <button
                   type="button"
                   onClick={prevStep}

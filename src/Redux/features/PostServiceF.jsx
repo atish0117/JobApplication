@@ -317,6 +317,7 @@ export const fetchJobPosts = createAsyncThunk(
           )
         )
       );
+      console.log("jobpost id",jobPostsDetails)
       return jobPostsDetails;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -409,6 +410,21 @@ export const deleteProfile = createAsyncThunk(
       // Delete user profile
       await databases.deleteDocument(config.appwriteDatabaseId, collectionId, userId);
     } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// user profile fetch function
+export const fetchAllUserProfiles = createAsyncThunk(
+  "form/fetchUserProfiles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const databases = new Databases(client);
+      const response = await databases.listDocuments(config.appwriteDatabaseId, config.appwriteCollectionIdJobaryProfileId);
+      return response.documents;
+    } catch (error) {
+      console.error("Error fetching user profiles:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -542,7 +558,20 @@ const formSlice = createSlice({
       state.status = "failed";
       state.error = action.payload;
     })
-
+        // fetch all user profile state
+        builder
+        .addCase(fetchAllUserProfiles.pending, (state) => {
+          state.status = "loading";
+          state.error = null;
+        })
+        .addCase(fetchAllUserProfiles.fulfilled, (state, action) => {
+          state.status = "succeeded";
+          state.profiles = action.payload;
+        })
+        .addCase(fetchAllUserProfiles.rejected, (state, action) => {
+          state.status = "failed";
+          state.error = action.payload;
+        })
 
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
