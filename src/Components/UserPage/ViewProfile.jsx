@@ -94,5 +94,4 @@ function ViewProfile() {
     </div>
   );
 }
-
 export default ViewProfile;

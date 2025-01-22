@@ -30,7 +30,6 @@ const EmployeeForm2 = () => {
     Address: "",
     JobStatus: "",
     college:"",
-
     skills: [{ skill: "", experience: "" }],
     profileImage: null,
     selfNote: "",
