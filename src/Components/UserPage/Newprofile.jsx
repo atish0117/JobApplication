@@ -10,9 +10,7 @@ import {
 } from "../../Redux/features/PostServiceF";
 import { useNavigate } from "react-router-dom";
 import { updateSelfNote } from "../../Redux/features/PostServiceF"; // Path to your updateSelfNote action
-import { Databases, Query, Storage, Account, ID } from "appwrite";
 import config from "../../appWrite/config";
-import client from "../../appWrite/AppwriteConfigPost";
 import { IoHomeOutline } from "react-icons/io5";
 import {
   FaUser,
@@ -155,11 +153,8 @@ const Newprofile = () => {
     },
     [dispatch]
   );
-
   // Loading and error states
   if (status === "loading") return <p>Loading...</p>;
-  // if (error) return <p>Error: {error}</p>;
-
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       {profile ? (
@@ -187,7 +182,6 @@ const Newprofile = () => {
                   </button>
                 </div>
               </div>
-
               {/* Main Section */}
               <div className="grid grid-cols-6 gap-4">
                 {/* Profile Section */}
@@ -218,7 +212,6 @@ const Newprofile = () => {
                     <p className="text-center">Address: {profile.Address}</p>
                   </div>
                 </div>
-
                 {/* Self Notes */}
                 <div className="col-span-2 bg-gray-500 rounded-lg p-4 flex flex-wrap">
                   <div>
@@ -249,7 +242,6 @@ const Newprofile = () => {
                   )}
                 </div>
               </div>
-
               {/* Skills Section */}
               <div className="bg-gray-200 rounded-lg p-4">
                 <h2 className="text-lg font-bold">Skills with Experience</h2>
@@ -317,7 +309,6 @@ const Newprofile = () => {
                   )}
                 </div>
               </div>
-
               {/* Project Details Section */}
               {selectedProject && (
                 <div className="p-6 bg-white rounded-lg shadow-md mt-6">
@@ -369,7 +360,6 @@ const Newprofile = () => {
                   </div>
                 </div>
               )}
-
               {/* Add/Edit Project Form */}
               {showForm && isOwner && (
                 <div className="bg-white p-6 rounded-lg shadow-md mt-6">
@@ -601,5 +591,4 @@ const Newprofile = () => {
     </div>
   );
 };
-
 export default Newprofile;

@@ -18,20 +18,24 @@ import { IoIosAddCircleOutline } from "react-icons/io";
 import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserProfile,fetchAllUserProfiles } from "../../Redux/features/PostServiceF";
+import {
+  fetchUserProfile,
+  fetchAllUserProfiles,
+} from "../../Redux/features/PostServiceF";
 import { useNavigate } from "react-router-dom";
 import config from "../../appWrite/config";
 import { Databases } from "appwrite";
 import client from "../../appWrite/AppwriteConfigPost";
-
+import ProfileComponent from "./profileComponent";
 const UserHomePage = () => {
   const [jobPosts, setJobPosts] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const { profile, role, loading, error,profiles, status, } = useSelector((state) => state.form);
-    console.log("all user profile",profiles)
-  
+  const { profile, role, loading, error, profiles, status } = useSelector(
+    (state) => state.form
+  );
+  console.log("all user profile", profiles);
 
   const fetchJobPosts = async () => {
     try {
@@ -55,9 +59,7 @@ const UserHomePage = () => {
   }, [dispatch]);
   console.log("data", profile);
 
-
   useEffect(() => {
-
     dispatch(fetchAllUserProfiles());
   }, [dispatch]);
 
@@ -74,99 +76,7 @@ const UserHomePage = () => {
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-lvh mx-5 lg:mx-20 py-5">
-        {/* Profile Section */}
-        {profile ? (
-          <div className="profile bg-white flex flex-col shadow-xl p-5 rounded-xl border border-black w-full lg:w-1/3">
-            {/* Edit Button */}
-
-            <div className="edit-btn flex justify-between items-center mb-5">
-              <span className="border border-black px-2 py-1 rounded flex items-center gap-2">
-                <CiLight className="text-xl lg:text-2xl text-[#ff4655]" />
-                Status: Looking for job
-              </span>
-              <CiEdit className="text-xl lg:text-3xl" />
-            </div>
-
-            {/* Avatar */}
-            <div className="profile-avatar flex justify-center mb-5">
-              <span className="w-40 h-40 lg:w-60 lg:h-60 border border-black rounded-full bg-center bg-cover">
-                <img
-                  src={profile.profileImageUrl}
-                  alt="Profile"
-                  className="profile-image w-full h-full rounded-full"
-                />
-              </span>
-            </div>
-
-            {/* Profile Details */}
-            <div className="profile-details flex flex-col justify-between flex-grow">
-              {role === "Employee" && (
-                <>
-                  <div className="flex flex-col gap-3">
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiUser className="text-xl lg:text-2xl" /> Name:{" "}
-                      <span>{profile.FullName}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiMail className="text-xl lg:text-2xl" /> Email:{" "}
-                      <span>{profile.email}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiPhone className="text-xl lg:text-2xl" /> Phone no:{" "}
-                      <span>{profile.Contact}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiLocationOn className="text-xl lg:text-2xl" /> Address:{" "}
-                      <span>{profile.Address}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2 flex-wrap">
-                      <CiMedal className="text-xl lg:text-2xl" /> Skills:
-                      {profile.skills.map((skill, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-gray-700 text-white px-2 py-1 rounded ms-2"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                </>
-              )}
-              {role === "Employer" && (
-                <>
-                  <div className="flex flex-col gap-3">
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiUser className="text-xl lg:text-2xl" /> Name:{" "}
-                      <span>{profile.FullName}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiMail className="text-xl lg:text-2xl" /> Email:{" "}
-                      <span>{profile.email}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiPhone className="text-xl lg:text-2xl" /> Phone no:{" "}
-                      <span>{profile.Contact}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2">
-                      <CiLocationOn className="text-xl lg:text-2xl" /> POST:{" "}
-                      <span>{profile.post}</span>
-                    </span>
-                    <span className="flex text-base lg:text-lg gap-2 flex-wrap ">
-                      <CiMedal className="text-xl lg:text-2xl" /> Skills: <br />
-                      <span className="flex-wrap">{profile.skills}</span>
-                    </span>
-                  </div>
-                </>
-              )}
-              <button className="mt-5 bg-[#ff4655] text-white px-4 py-2 rounded">
-                Log Out
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p>No profile found.</p>
-        )}
+        <ProfileComponent/>
         {/* Jobs Section */}
         <div className="jobs-by-skills flex flex-col grow bg-white py-5 px-3 lg:px-5 shadow-xl rounded border border-black w-full lg:overflow-y-scroll">
           {/* <JobPost role={role} /> */}
@@ -184,23 +94,21 @@ const UserHomePage = () => {
               )}
             </Link>
             <Link to={"/searchcomponent"}>
-            <span className="flex items-center gap-2 p-2 rounded-full border bg-slate-600 hover:bg-slate-700 transition-all duration-300 border-gray-500">
-              <CiSearch className="text-xl font-extrabold text-white lg:text-3xl" />
-            </span>
+              <span className="flex items-center gap-2 p-2 rounded-full border bg-slate-600 hover:bg-slate-700 transition-all duration-300 border-gray-500">
+                <CiSearch className="text-xl font-extrabold text-white lg:text-3xl" />
+              </span>
             </Link>
           </div>
 
-          
-
           {/* Job Listings */}
           {role === "Employee" && (
-          <div className="skill-job-list flex flex-col">
-          <div className="filter flex justify-between items-center mb-5">
-            <span className="text-lg lg:text-3xl">
-              Jobs matching your skills
-            </span>
-          </div>
-            { jobPosts?.map((jobs, idx) => (
+            <div className="skill-job-list flex flex-col">
+              <div className="filter flex justify-between items-center mb-5">
+                <span className="text-lg lg:text-3xl">
+                  Jobs matching your skills
+                </span>
+              </div>
+              {jobPosts?.map((jobs, idx) => (
                 <div
                   key={idx}
                   className="w-full shadow-xl mt-5 p-5 rounded border border-black"
@@ -210,8 +118,7 @@ const UserHomePage = () => {
                       <span className="h-16 w-16 lg:h-20 lg:w-20 border border-black rounded-full bg-center bg-contain"></span>
                       <div className="flex flex-col">
                         <span className="text-lg lg:text-2xl">
-                          {jobs.jobTitle
-                          }
+                          {jobs.jobTitle}
                         </span>
                         <span>{jobs.companyName}</span>
                       </div>
@@ -225,104 +132,67 @@ const UserHomePage = () => {
                       <CiMoneyBill className="text-lg lg:text-2xl ms-3" />
                       <span className="text-sm lg:text-lg">{jobs.salary}</span>
                       <CiLocationOn className="text-lg lg:text-2xl ms-3" />
-                      <span className="text-sm lg:text-lg">{jobs.location}</span>
+                      <span className="text-sm lg:text-lg">
+                        {jobs.location}
+                      </span>
                     </div>
-                    <button onClick={()=>navigate(`/job/${jobs.$id}`, { state: { jobs } })}
-                    className="bg-gray-800 text-white px-3 py-2 rounded">
+                    <button
+                      onClick={() =>
+                        navigate(`/job/${jobs.$id}`, { state: { jobs } })
+                      }
+                      className="bg-gray-800 text-white px-3 py-2 rounded"
+                    >
                       Job Details
                     </button>
                   </div>
                 </div>
               ))}
-          </div>
+            </div>
           )}
           {role === "Employer" && (
-          <div className="max-w-full mx-auto p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
-          {selectedCandidate ? (
-            // Candidate Full Details View
-            <div>
-              <button
-                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={handleBackToProfiles}
-              >
-                Back to Profiles
-              </button>
-              <h2 className="text-2xl font-semibold text-center mb-6 underline">
-                {selectedCandidate.FullName}'s Full Details
-              </h2>
-              <p className="text-sm text-gray-600">
-                <strong>Email:</strong> {selectedCandidate.email}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Skills:</strong>{" "}
-                {selectedCandidate.skills?.join(", ") || "N/A"}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Experience:</strong> {selectedCandidate.experience || "N/A"}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Self-Note:</strong> {selectedCandidate.selfNote || "N/A"}
-              </p>
+            <div className="max-w-full mx-auto p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
+              // Candidate List View
               <div>
-                <h3 className="text-xl font-bold mt-4 underline">
-                  Projects
-                </h3>
-                {selectedCandidate.projects?.length > 0 ? (
-                  <ul className="list-disc ml-6">
-                    {selectedCandidate.projects.map((project, index) => (
-                      <li key={index} className="text-sm text-gray-600">
-                        {project}
-                      </li>
-                    ))}
-                  </ul>
+                <h2 className="text-2xl font-semibold text-center mb-6 underline">
+                  Candidate Profiles
+                </h2>
+                {profiles?.length === 0 ? (
+                  <p className="text-center text-gray-500">
+                    No user profiles found.
+                  </p>
                 ) : (
-                  <p className="text-sm text-gray-600">No projects found.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {profiles?.map((profile) => (
+                      <Link
+                        to={`/viewProfile/${profile?.$id}`}
+                        key={profile?.$id}
+                        className="p-4 border border-gray-300 rounded-md shadow-md cursor-pointer"
+                        onClick={() => handleCandidateClick(profile)}
+                      >
+                        <h3 className="text-xl font-bold">
+                          <strong className="text-sm text-gray-600">
+                            Name:
+                          </strong>{" "}
+                          {profile?.FullName}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          <strong>Email:</strong> {profile?.email}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <strong>Skills:</strong>{" "}
+                          {profile?.skills?.join(", ") || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <strong>Experience:</strong>{" "}
+                          {profile?.experience || "N/A"}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-          ) : (
-            // Candidate List View
-            <div>
-              <h2 className="text-2xl font-semibold text-center mb-6 underline">
-                Candidate Profiles
-              </h2>
-              {profiles?.length === 0 ? (
-                <p className="text-center text-gray-500">
-                  No user profiles found.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {profiles?.map((profile) => (
-                    <Link
-                    to={`/viewProfile/${profile?.$id}`}
-                      key={profile?.$id}
-                      className="p-4 border border-gray-300 rounded-md shadow-md cursor-pointer"
-                      onClick={() => handleCandidateClick(profile)}
-                    >
-                      <h3 className="text-xl font-bold">
-                        <strong className="text-sm text-gray-600">Name:</strong>{" "}
-                        {profile?.FullName}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        <strong>Email:</strong> {profile?.email}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Skills:</strong>{" "}
-                        {profile?.skills?.join(", ") || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Experience:</strong>{" "}
-                        {profile?.experience || "N/A"}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
           )}
-        </div>
-          )}
-
         </div>
       </div>
       <footer className="bg-gray-100 border-t border-gray-300 p-10 mt-6">

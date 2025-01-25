@@ -28,6 +28,7 @@ import JobPost from './Components/UserPage/JobPost.jsx';
 import JobDetailPage from './Components/UserPage/JobDetailPage.jsx';
 import SearchComponent from './Components/SearchComponent.jsx';
 import ViewProfile from './Components/UserPage/ViewProfile.jsx';
+import profileComponent from './Components/UserPage/profileComponent.jsx';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
       {
         path: '/newprofile',
         element: <Newprofile />
+      },
+      {
+        path: '/profilecomponent',
+        element: <profileComponent />
       },
       {
         path: "/job/:jobId",

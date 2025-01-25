@@ -1,6 +1,6 @@
 // src/redux/formSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { ID, Databases, Storage,Query  } from "appwrite";
+import { ID, Databases, Storage, Query } from "appwrite";
 import client from "../../appWrite/AppwriteConfigPost";
 import config from "../../appWrite/config";
 
@@ -11,8 +11,8 @@ export const createProfile = createAsyncThunk(
   "form/createProfile",
   async ({ formData, role }, { rejectWithValue }) => {
     try {
-      console.log("create profile called")
-      console.log("formdata and role ",formData,role)
+      console.log("create profile called");
+      console.log("formdata and role ", formData, role);
 
       // Upload profile image
       const profileUpload = await storage.createFile(
@@ -24,11 +24,12 @@ export const createProfile = createAsyncThunk(
       // console.log("file uploaded ")
 
       // Choose collection based on role
-      const collectionId = role === "Employee"
-        ? config.appwriteCollectionIdJobaryProfileId
-        : config.appwriteCollectionIdEmployerProfileId;
+      const collectionId =
+        role === "Employee"
+          ? config.appwriteCollectionIdJobaryProfileId
+          : config.appwriteCollectionIdEmployerProfileId;
 
-        console.log("collection id",collectionId)
+      console.log("collection id", collectionId);
       // Store form data
       const response = await databases.createDocument(
         config.appwriteDatabaseId,
@@ -40,10 +41,10 @@ export const createProfile = createAsyncThunk(
           role,
         }
       );
-console.log(response)
+      console.log(response);
       return response;
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return rejectWithValue(error.message);
     }
   }
@@ -59,7 +60,7 @@ export const fetchUserProfile = createAsyncThunk(
 
       // Retrieve email from localStorage
       const email = localStorage.getItem("Token");
-      console.log(email)
+      console.log(email);
 
       if (!email) {
         throw new Error("Email not found in localStorage");
@@ -75,13 +76,16 @@ export const fetchUserProfile = createAsyncThunk(
       if (employeeResponse.documents.length > 0) {
         const profile = employeeResponse.documents[0];
         const role = "Employee";
-  
+
         // Fetch profile image URL if it exists
         let profileImageUrl = null;
         if (profile.profileImage) {
-          profileImageUrl = storage.getFilePreview(config.appwriteBucketId, profile.profileImage);
+          profileImageUrl = storage.getFilePreview(
+            config.appwriteBucketId,
+            profile.profileImage
+          );
         }
-  
+
         return { profile: { ...profile, profileImageUrl }, role };
       }
 
@@ -91,29 +95,30 @@ export const fetchUserProfile = createAsyncThunk(
         config.appwriteCollectionIdEmployerProfileId,
         [Query.equal("email", email)]
       );
-      
-
 
       if (employerResponse.documents.length > 0) {
-        let data= { profile: employerResponse.documents[0], role: "Employer" };
+        let data = { profile: employerResponse.documents[0], role: "Employer" };
         const profile = data.profile;
-        const role=data.role
-        console.log("profile",profile)
-        console.log("profile",profile.profileImage)
+        const role = data.role;
+        console.log("profile", profile);
+        console.log("profile", profile.profileImage);
         // const role = "Employee";
         //       console.log("second value",profile)
         // // Fetch profile image URL if it exists
         let profileImageUrl = null;
         if (profile.profileImage) {
-          profileImageUrl = storage.getFilePreview(config.appwriteBucketId, profile.profileImage);
+          profileImageUrl = storage.getFilePreview(
+            config.appwriteBucketId,
+            profile.profileImage
+          );
         }
-  
-        return { profile: { ...profile, profileImageUrl },role  };
+
+        return { profile: { ...profile, profileImageUrl }, role };
       }
 
       throw new Error("No profile found for the provided email");
     } catch (error) {
-      console.log(error.message)
+      console.log(error.message);
       return rejectWithValue(error.message);
     }
   }
@@ -131,7 +136,7 @@ export const updateSelfNote = createAsyncThunk(
         userId, // Pass the document ID to update
         { selfNote: newSelfNote }
       );
-      console.log("userId from selfnote",userId);
+      console.log("userId from selfnote", userId);
       return updatedDocument;
     } catch (error) {
       console.error("Error updating selfNote:", error.message);
@@ -212,13 +217,13 @@ export const addProject = createAsyncThunk(
 //  Fetch User Projects
 export const fetchProjects = createAsyncThunk(
   "form/fetchProjects",
-  async (candidateId, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // const email = localStorage.getItem("Token");
+      const email = localStorage.getItem("Token");
       const userResponse = await databases.listDocuments(
         config.appwriteDatabaseId,
         config.appwriteCollectionIdJobaryProfileId,
-        [Query.equal("$id", candidateId)]
+        [Query.equal("email", email)]
       );
 
       if (userResponse.documents.length === 0) {
@@ -317,7 +322,7 @@ export const fetchJobPosts = createAsyncThunk(
           )
         )
       );
-      console.log("jobpost id",jobPostsDetails)
+      console.log("jobpost id", jobPostsDetails);
       return jobPostsDetails;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -375,9 +380,10 @@ export const updateProfile = createAsyncThunk(
       const databases = new Databases(client);
 
       // Choose collection based on role
-      const collectionId = role === "Employee"
-        ? config.appwriteCollectionIdJobaryProfileId
-        : config.appwriteCollectionIdEmployerProfileId;
+      const collectionId =
+        role === "Employee"
+          ? config.appwriteCollectionIdJobaryProfileId
+          : config.appwriteCollectionIdEmployerProfileId;
 
       // Update user profile
       const response = await databases.updateDocument(
@@ -402,28 +408,55 @@ export const deleteProfile = createAsyncThunk(
       const databases = new Databases(client);
 
       // Choose collection based on role
-      const collectionId = role === "Employee"
-        ? config.appwriteCollectionIdJobaryProfileId
-        : config.appwriteCollectionIdEmployerProfileId;
+      const collectionId =
+        role === "Employee"
+          ? config.appwriteCollectionIdJobaryProfileId
+          : config.appwriteCollectionIdEmployerProfileId;
 
       // Delete user profile
-      await databases.deleteDocument(config.appwriteDatabaseId, collectionId, userId);
+      await databases.deleteDocument(
+        config.appwriteDatabaseId,
+        collectionId,
+        userId
+      );
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
-// user profile fetch function
+// All Candidate user profile fetch function
 export const fetchAllUserProfiles = createAsyncThunk(
-  "form/fetchUserProfiles",
+  "form/fetchAllUserProfiles",
   async (_, { rejectWithValue }) => {
     try {
       const databases = new Databases(client);
-      const response = await databases.listDocuments(config.appwriteDatabaseId, config.appwriteCollectionIdJobaryProfileId);
+      const response = await databases.listDocuments(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId
+      );
       return response.documents;
     } catch (error) {
       console.error("Error fetching user profiles:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Fetch Single Candidate Profile Function
+export const fetchSingleUserProfile = createAsyncThunk(
+  "form/fetchSingleUserProfile",
+  async (candidateId, { rejectWithValue }) => {
+    try {
+      const databases = new Databases(client);
+      const response = await databases.getDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        candidateId
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching single user profile:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -440,6 +473,7 @@ const formSlice = createSlice({
     loading: false,
     error: null,
     role: null,
+    profiles: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -463,9 +497,10 @@ const formSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile ={
+        state.profile = {
           ...action.payload.profile,
-          selfNote: action.payload.profile.selfNote || "Write your notes here...", // selfNote has a default value
+          selfNote:
+            action.payload.profile.selfNote || "Write your notes here...", // selfNote has a default value
         };
         state.role = action.payload.role;
       })
@@ -486,91 +521,106 @@ const formSlice = createSlice({
       .addCase(updateSelfNote.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
+      });
 
-       // Add Project
+    // Add Project
     builder.addCase(addProject.pending, (state) => {
       state.loading = true;
-    })
+    });
     builder.addCase(addProject.fulfilled, (state, action) => {
       state.loading = false;
       state.projects.push(action.payload);
-    })
+    });
     builder.addCase(addProject.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
-    })
+    });
 
-       // Fetch Projects
-       builder.addCase(fetchProjects.pending, (state) => {
-        state.loading = true;
-      })
-      builder.addCase(fetchProjects.fulfilled, (state, action) => {
-        state.loading = false;
-        state.projects = action.payload;
-      })
-      builder.addCase(fetchProjects.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+    // Fetch Projects
+    builder.addCase(fetchProjects.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchProjects.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects = action.payload;
+    });
+    builder.addCase(fetchProjects.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
 
-       // Delete Project
+    // Delete Project
     builder.addCase(deleteProject.pending, (state) => {
       state.loading = true;
-    })
+    });
     builder.addCase(deleteProject.fulfilled, (state, action) => {
       state.loading = false;
       state.projects = state.projects.filter(
         (project) => project.id !== action.payload
       );
-    })
+    });
     builder.addCase(deleteProject.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
-    })
+    });
     // fetch jobpost
     builder
-    .addCase(fetchJobPosts.pending, (state) => {
-      state.status = "loading";
-    })
-    .addCase(fetchJobPosts.fulfilled, (state, action) => {
-      state.status = "succeeded";
-      state.jobPosts = action.payload;
-    })
-    .addCase(fetchJobPosts.rejected, (state, action) => {
-      state.status = "failed";
-      state.error = action.payload;
-    })
-      // delete jobpost
-  builder
-    .addCase(deleteJobPost.pending, (state) => {
-      state.status = "loading";
-    })
-    .addCase(deleteJobPost.fulfilled, (state, action) => {
-      state.status = "succeeded";
-      // Filter out the deleted job post by ID
-      state.jobPosts = state.jobPosts.filter(
-        (jobPost) => jobPost.$id !== action.payload
-      );
-    })
-    .addCase(deleteJobPost.rejected, (state, action) => {
-      state.status = "failed";
-      state.error = action.payload;
-    })
-        // fetch all user profile state
-        builder
-        .addCase(fetchAllUserProfiles.pending, (state) => {
-          state.status = "loading";
-          state.error = null;
-        })
-        .addCase(fetchAllUserProfiles.fulfilled, (state, action) => {
-          state.status = "succeeded";
-          state.profiles = action.payload;
-        })
-        .addCase(fetchAllUserProfiles.rejected, (state, action) => {
-          state.status = "failed";
-          state.error = action.payload;
-        })
+      .addCase(fetchJobPosts.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchJobPosts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.jobPosts = action.payload;
+      })
+      .addCase(fetchJobPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      });
+    // delete jobpost
+    builder
+      .addCase(deleteJobPost.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deleteJobPost.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // Filter out the deleted job post by ID
+        state.jobPosts = state.jobPosts.filter(
+          (jobPost) => jobPost.$id !== action.payload
+        );
+      })
+      .addCase(deleteJobPost.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      });
+    // fetch candidate all user profile state
+    builder
+      .addCase(fetchAllUserProfiles.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchAllUserProfiles.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.profiles = action.payload;
+      })
+      .addCase(fetchAllUserProfiles.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      });
+
+    // State for fetching single profile candidate
+    builder
+      .addCase(fetchSingleUserProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchSingleUserProfile.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.selectedProfile = action.payload; // Store single profile data
+      })
+      .addCase(fetchSingleUserProfile.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
 
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
