@@ -27,6 +27,8 @@ import {
   FaGithub,
   FaLinkedin,
   FaEdit,
+  FaPlus,
+  FaTrash ,
 } from "react-icons/fa";
 const Newprofile = () => {
   const dispatch = useDispatch();
@@ -128,6 +130,139 @@ const Newprofile = () => {
     updateUserProfile();
     setIsEditing(false); // Close the form after saving
   };
+      // state for certificate 
+  const [certificates, setCertificates] = useState([]); // List of certificates
+  const [isAdding, setIsAdding] = useState(false); // Toggle for modal visibility
+  const [certificateFile, setCertificateFile] = useState(null); // Certificate file to upload
+  const [certificateTitle, setCertificateTitle] = useState(""); // Certificate title input
+  // Fetch certificates from database
+  // Fetch certificates
+  const fetchCertificates = async () => {
+    try {
+      const databases = new Databases(client);
+      const response = await databases.getDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id
+      );
+
+      const fetchedCertificates = response.certificates
+        ? response.certificates.map((cert) => JSON.parse(cert))
+        : [];
+
+      setCertificates(fetchedCertificates);
+    } catch (error) {
+      console.error("Error fetching certificates:", error.message);
+    }
+  };
+
+  // Handle certificate file input
+  const handleCertificateUpload = (e) => {
+    const file = e.target.files[0];
+    setCertificateFile(file);
+  };
+
+  // Save certificate
+  const saveCertificate = async () => {
+    if (!certificateFile || !certificateTitle) {
+      alert("Please provide a certificate title and file.");
+      return;
+    }
+
+    // loading(true);
+    try {
+      const storage = new Storage(client);
+      const databases = new Databases(client);
+
+      // Upload certificate file
+      const fileResponse = await storage.createFile(
+        config.appwriteBucketId,
+        ID.unique(),
+        certificateFile
+      );
+
+       // Step 2: Create a new certificate object
+    const newCertificate = {
+      title: certificateTitle,
+      fileId: fileResponse.$id,
+    };
+
+     // Step 3: Serialize the new certificate object to a JSON string
+     const serializedCertificate = JSON.stringify(newCertificate);
+
+      // Step 4: Append the new serialized certificate to the existing list
+    const updatedCertificates = [
+      ...certificates.map((cert) => JSON.stringify(cert)), // Ensure existing certificates are strings
+      serializedCertificate,
+    ];
+
+      // Update database
+      await databases.updateDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id,
+        { certificates: updatedCertificates }
+      );
+
+      // Refresh certificates
+      fetchCertificates();
+      setIsAdding(false); // Close modal
+      setCertificateFile(null); // Reset file
+      setCertificateTitle(""); // Reset title
+    } catch (error) {
+      console.error("Error saving certificate:", error.message);
+    } finally {
+      // setLoading(false);
+    }
+  };
+  // delete Certificate Function
+  const deleteCertificate = async (index) => {
+    if (!window.confirm("Are you sure you want to delete this certificate?")) {
+      return;
+    }
+  
+    try {
+      const storage = new Storage(client);
+      const databases = new Databases(client);
+  
+      // Get the fileId of the certificate to delete
+      const certificateToDelete = certificates[index];
+      const { fileId } = certificateToDelete;
+  
+      // Step 1: Delete the file from Appwrite storage
+      await storage.deleteFile(config.appwriteBucketId, fileId);
+  
+      // Step 2: Remove the certificate from the certificates array
+      const updatedCertificates = certificates.filter((_, i) => i !== index);
+  
+      // Step 3: Serialize remaining certificates
+      const serializedCertificates = updatedCertificates.map((cert) =>
+        JSON.stringify(cert)
+      );
+  
+      // Step 4: Update the database
+      await databases.updateDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id,
+        {
+          certificates: serializedCertificates,
+        }
+      );
+  
+      // Refresh certificates in UI
+      fetchCertificates();
+      alert("Certificate deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting certificate:", error.message);
+      alert("Failed to delete the certificate.");
+    }
+  };
+  
+
+  useEffect(() => {
+    fetchCertificates();
+  }, []);
 
   const handleSendMessage = async (profile) => {
     try {
@@ -320,7 +455,7 @@ const Newprofile = () => {
                                       type="button"
                                       className="bg-green-500 text-white p-2 rounded-md"
                                       onClick={() => {
-                                        const downloadLink = `${config.appwriteEndpoint}/storage/buckets/${config.appwriteBucketId}/files/${resumeUrl}/download`;
+                                        const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${resumeUrl}/download`;
                                         window.open(downloadLink, "_blank");
                                       }}
                                     >
@@ -387,16 +522,18 @@ const Newprofile = () => {
                 </div>
 
                 {/* Self Notes */}
-                <div className="col-span-3 bg-gray-300 rounded-lg p-4 flex flex-wrap">
-                  <div className="break-words">
+                <div className="col-span-3 bg-gray-300 rounded-lg p-4 flex flex-col flex-wrap w-full">
+                  <div className="">
                     {isEditable ? (
                       <textarea
-                        className="w-full p-2 border border-gray-300 rounded "
+                        className="w-full p-2 border border-gray-300 rounded"
                         value={selfNote}
                         onChange={(e) => setSelfNote(e.target.value)}
                       />
                     ) : (
-                      <p className="selfnote-box">{profile.selfNote}</p>
+                      <div className="selfnote-box ms-7 max-w-96 break-words h-52 overflow-hidden overflow-y-scroll">
+{profile.selfNote}
+                      </div>
                     )}
                   </div>
                   <button
@@ -429,6 +566,112 @@ const Newprofile = () => {
                   );
                 })}
               </div>
+
+
+                        {/* Certificate Boxs */}
+                        <div className="max-w-4xl mx-auto p-6 bg-neutral-500">
+      <h2 className="text-2xl font-semibold text-center mb-6">Certificates</h2>
+
+      {/* Add Certificate Button */}
+      <div className="flex justify-end mb-4">
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          onClick={() => setIsAdding(true)}
+        >
+          <FaPlus className="mr-2" /> Add Certificate
+        </button>
+      </div>
+
+      {/* Display Certificates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {certificates.length > 0 ? (
+    certificates.map((certificate, index) => (
+      <div
+        key={index}
+        className="p-4 border border-gray-200 rounded-lg shadow-md flex flex-col items-center"
+      >
+        <h3 className="text-lg font-medium mb-2">{certificate.title}</h3>
+        <div className="flex space-x-4">
+          <button
+            className="bg-green-500 text-white px-3 py-2 rounded-md mt-2"
+            onClick={() => {
+              const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download`;
+              window.open(downloadLink, "_blank");
+            }}
+          >
+            <FaFileDownload className="inline-block mr-2" />
+          </button>
+          <button
+            className="bg-red-500 text-white px-3 py-2 rounded-md mt-2"
+            onClick={() => deleteCertificate(index)}
+          >
+            <FaTrash className="inline-block mr-2" />
+          </button>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-300 text-center col-span-3">
+      No certificates found.
+    </p>
+  )}
+</div>
+
+
+      {/* Add Certificate Modal */}
+      {isAdding && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
+            <h3 className="text-2xl font-semibold text-center mb-4">Add Certificate</h3>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveCertificate();
+              }}
+            >
+              <div className="space-y-4">
+                {/* Certificate Title */}
+                <input
+                  type="text"
+                  placeholder="Certificate Title"
+                  value={certificateTitle}
+                  onChange={(e) => setCertificateTitle(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-md w-full"
+                  required
+                />
+
+                {/* Certificate File */}
+                <input
+                  type="file"
+                  onChange={handleCertificateUpload}
+                  className="p-3 border border-gray-300 rounded-md w-full"
+                  accept=".pdf,.jpg,.png,.doc,.docx"
+                  required
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="mt-6 flex justify-end space-x-4">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+                  onClick={() => setIsAdding(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  disabled={loading}
+                >
+                  {loading ? "Saving..." : "Save Certificate"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
 
               {/* Projects Section */}
               <div className="bg-gray-200 rounded-lg p-4">

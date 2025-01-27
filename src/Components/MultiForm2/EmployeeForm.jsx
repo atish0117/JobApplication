@@ -212,7 +212,7 @@ const EmployeeForm2 = () => {
           )}
 
           {step === 2 && (
-            <div>
+            <div className="">
               <h2 className="text-2xl font-bold text-gray-800 mb-1">
                 Education and Skills
               </h2>
@@ -247,7 +247,7 @@ const EmployeeForm2 = () => {
                   required
                 />
               </div>
-              <div>
+              <div className="max-h-40">
                 <label className="block text-gray-800 font-medium">Skills</label>
                 <div className="overflow-y-auto max-h-32 border border-gray-300 rounded-md p-2">
                   {formData.skills.map((skill, index) => (

@@ -4,9 +4,11 @@ import { fetchUserProfile } from "../Redux/features/PostServiceF";
 import { Databases } from "appwrite";
 import config from "../appWrite/config"; // Add your Appwrite config here
 import client from "../appWrite/AppwriteConfigPost";
+import { useNavigate } from "react-router-dom";
 
 const SearchComponent = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const { role, loading, error } = useSelector((state) => state.form);
   const [jobs, setJobs] = useState([]);
   const [candidates, setCandidates] = useState([]);
@@ -143,7 +145,7 @@ const SearchComponent = () => {
               <option value="Part-time">Part-time</option>
               <option value="Remote">Remote</option>
             </select>
-            <select
+            {/* <select
               className="p-2 border rounded"
               value={searchParams.experience}
               onChange={(e) =>
@@ -154,14 +156,14 @@ const SearchComponent = () => {
               <option value="Entry">Entry</option>
               <option value="Mid">Mid</option>
               <option value="Senior">Senior</option>
-            </select>
+            </select> */}
             <input
               type="number"
-              placeholder="Min Salary"
+              placeholder="min experience"
               className="p-2 border rounded"
               value={searchParams.salary}
               onChange={(e) =>
-                setSearchParams({ ...searchParams, salary: e.target.value })
+                setSearchParams({ ...searchParams, experience: e.target.value })
               }
             />
           </>
@@ -199,7 +201,7 @@ const SearchComponent = () => {
         <h3 className="text-xl font-semibold mb-2">Results:</h3>
         {results.length > 0 ? (
           results.map((item, index) => (
-            <div key={index} className="p-4 border rounded mb-2">
+            <div key={index} className="p-4 border rounded mb-2 ">
               {role === "Employee" ? (
                 <>
                   <h4 className="font-bold">{item.title}</h4>
@@ -207,6 +209,14 @@ const SearchComponent = () => {
                   <p>Location: {item.location}</p>
                   <p>Type: {item.time}</p>
                   <p>Salary: ${item.salary}</p>
+                  <button
+                      onClick={() =>
+                        navigate(`/job/${item.$id}`, { state: { item } })
+                      }
+                      className="bg-gray-800 text-white px-3 py-2 rounded"
+                    >
+                      Job Details
+                    </button>
                 </>
               ) : (
                 <>

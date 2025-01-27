@@ -156,7 +156,7 @@ const JobDetailPage = () => {
           }`}
           onClick={() => handleScroll("job_Description")}
         >
-          Job Description
+          Key Responsibilities
         </button>
         <button
           className={`text-xl font-bold mb-2 cursor-pointer px-4 py-2 rounded ${
@@ -166,7 +166,8 @@ const JobDetailPage = () => {
           }`}
           onClick={() => handleScroll("Key_responsibilities")}
         >
-          Key Responsibilities
+          Job Description
+          
         </button>
       </div>
       <div className="w-full h-64 overflow-y-auto">
