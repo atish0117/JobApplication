@@ -72,7 +72,7 @@ const UserHomePage = () => {
   };
   if (status === "loading") return <p>Loading user profiles...</p>;
   // if (status === "failed") return <p>Error: {error}</p>;
-
+  console.log("jobspost",jobPosts)
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-lvh mx-5 lg:mx-20 py-5">
@@ -115,7 +115,12 @@ const UserHomePage = () => {
                 >
                   <div className="flex justify-between">
                     <div className="flex gap-2 items-center">
-                      <span className="h-16 w-16 lg:h-20 lg:w-20 border border-black rounded-full bg-center bg-contain"></span>
+                      <span className="h-16 w-16 lg:h-20 lg:w-20 border border-black rounded-full bg-center bg-contain overflow-hidden">
+                        <img src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${jobs.jobFile}/view?project=${config.appwriteProjectId}`}
+                        alt={jobs.jobTitle}
+                        className="w-20 h-20 "
+                        />
+                      </span>
                       <div className="flex flex-col">
                         <span className="text-lg lg:text-2xl">
                           {jobs.jobTitle}

@@ -223,6 +223,14 @@ const SearchComponent = () => {
                   <h4 className="font-bold">{item.name}</h4>
                   <p>Skills: {item.skills}</p>
                   <p>Location: {item.location}</p>
+                  <button
+                      onClick={() =>
+                        navigate(`/job/${item.$id}`, { state: { item } })
+                      }
+                      className="bg-gray-800 text-white px-3 py-2 rounded"
+                    >
+                      Candidate Details
+                    </button>
                 </>
               )}
             </div>

@@ -23,7 +23,8 @@ import {
   CiClock2,
   CiLight,
 } from "react-icons/ci";
-
+import { CgProfile } from "react-icons/cg";
+import Newprofile from "./Newprofile";
 const ProfileComponent = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -49,7 +50,9 @@ const ProfileComponent = () => {
                 <CiLight className="text-xl lg:text-2xl text-[#ff4655]" />
                 Status: Looking for job
               </span>
-              <CiEdit className="text-xl lg:text-3xl" />
+              <Link to={"/newprofile"}>
+              <CgProfile className="text-xl lg:text-3xl" />
+              </Link>
             </div>
 
             {/* Avatar */}

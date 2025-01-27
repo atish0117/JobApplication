@@ -30,6 +30,9 @@ import {
   FaPlus,
   FaTrash ,
 } from "react-icons/fa";
+import {
+  CiEdit,
+} from "react-icons/ci";
 const Newprofile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -357,6 +360,7 @@ const Newprofile = () => {
     [dispatch]
   );
 
+console.log("Certificates array:", certificates);
   // Loading and error states
   if (status === "loading") return <p>Loading...</p>;
   return (
@@ -379,7 +383,7 @@ const Newprofile = () => {
                     <IoHomeOutline className="text-2xl text-white" />
                   </button>
                   <button className="px-4 py-2 bg-yellow-300 rounded">
-                    Skills
+                    <CiEdit className="text-xl lg:text-3xl" />
                   </button>
                   <button className=" bg-yellow-300 rounded">
                     <div className="relative max-w-lg mx-auto p-4 border border-gray-200 rounded-lg shadow-lg bg-white">
@@ -592,6 +596,12 @@ const Newprofile = () => {
       >
         <h3 className="text-lg font-medium mb-2">{certificate.title}</h3>
         <div className="flex space-x-4">
+
+        <img
+                    src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/view?project=${config.appwriteProjectId}`}
+                    alt={certificate.title}
+                    className="w-full h-64 object-cover rounded-lg mt-4"
+                  />
           <button
             className="bg-green-500 text-white px-3 py-2 rounded-md mt-2"
             onClick={() => {
@@ -707,7 +717,7 @@ const Newprofile = () => {
                         alt="Thumbnail"
                         className="w-full h-32 object-cover rounded"
                       />
-                      <h3 className="text-center font-bold mt-2">
+                      <h3 className="text-center font-bold mt-2 uppercase">
                         {project.title}
                       </h3>
                     </div>
@@ -728,8 +738,8 @@ const Newprofile = () => {
               </div>
               {/* Project Details Section */}
               {selectedProject && (
-                <div className="p-6 bg-white rounded-lg shadow-md mt-6">
-                  <h1 className="text-3xl font-bold">
+                <div className="p-6 bg-white rounded-lg shadow-md mt-6 h-[500px] overflow-y-auto">
+                  <h1 className="text-3xl font-bold uppercase">
                     {selectedProject.title}
                   </h1>
                   <img
@@ -737,10 +747,10 @@ const Newprofile = () => {
                     alt={selectedProject.title}
                     className="w-full h-64 object-cover rounded-lg mt-4"
                   />
-                  <p className="text-lg mt-4">{selectedProject.description}</p>
+                  <p className="text-lg mt-4 break-words">{selectedProject.description}</p>
                   <div className="mt-6">
                     <h2 className="text-xl font-bold">Technologies Used:</h2>
-                    <p className="text-md mt-2">
+                    <p className="text-md mt-2 break-words">
                       {selectedProject.technologies}
                     </p>
                   </div>
