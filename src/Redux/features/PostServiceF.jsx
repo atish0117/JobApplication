@@ -462,7 +462,114 @@ export const fetchSingleUserProfile = createAsyncThunk(
   }
 );
 
-// Fetch Certificates
+// ** Fetch Certificates **
+export const fetchCertificates = createAsyncThunk(
+  "form/fetchCertificates",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const { profile } = getState().form;
+      if (!profile) throw new Error("User profile not found");
+
+      const databases = new Databases(client);
+      const response = await databases.getDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id
+      );
+
+      // Parse certificates if they exist
+      const fetchedCertificates = response.certificates
+        ? response.certificates.map((cert) => JSON.parse(cert))
+        : [];
+
+      return fetchedCertificates;
+    } catch (error) {
+      console.error("Error fetching certificates:", error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
+// ** Add Certificate **
+export const addCertificate = createAsyncThunk(
+  "form/addCertificate",
+  async ({ certificateTitle, certificateFile }, { rejectWithValue, getState, dispatch }) => {
+    try {
+      const { profile, certificates } = getState().form;
+      if (!profile) throw new Error("User profile not found");
+
+      // Upload certificate file to Appwrite Storage
+      const fileResponse = await storage.createFile(
+        config.appwriteBucketId,
+        ID.unique(),
+        certificateFile
+      );
+
+      // New certificate object
+      const newCertificate = {
+        title: certificateTitle,
+        fileId: fileResponse.$id,
+      };
+
+      // Append to existing certificates
+      const updatedCertificates = [
+        ...certificates.map((cert) => JSON.stringify(cert)),
+        JSON.stringify(newCertificate),
+      ];
+
+      // Update the database
+      await databases.updateDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id,
+        { certificates: updatedCertificates }
+      );
+
+      // Fetch certificates again to update the UI
+      dispatch(fetchCertificates());
+
+      return newCertificate;
+    } catch (error) {
+      console.error("Error adding certificate:", error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
+// ** Delete Certificate **
+export const deleteCertificate = createAsyncThunk(
+  "form/deleteCertificate",
+  async (index, { rejectWithValue, getState }) => {
+    try {
+      const { profile, certificates } = getState().form;
+      if (!profile) throw new Error("User profile not found");
+
+      const certificateToDelete = certificates[index];
+
+      // Delete file from storage
+      await storage.deleteFile(config.appwriteBucketId, certificateToDelete.fileId);
+
+      // Remove from list
+      const updatedCertificates = certificates.filter((_, i) => i !== index);
+
+      // Serialize and update database
+      const serializedCertificates = updatedCertificates.map((cert) => JSON.stringify(cert));
+      await databases.updateDocument(
+        config.appwriteDatabaseId,
+        config.appwriteCollectionIdJobaryProfileId,
+        profile.$id,
+        { certificates: serializedCertificates }
+      );
+
+      return updatedCertificates;
+    } catch (error) {
+      console.error("Error deleting certificate:", error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 
 // Slice
@@ -471,6 +578,7 @@ const formSlice = createSlice({
   initialState: {
     projects: [],
     jobPosts: [],
+    certificates: [],
     status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
     profile: null,
     loading: false,
@@ -649,9 +757,50 @@ const formSlice = createSlice({
       .addCase(deleteProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+          
+       // Fetch Certificates
+       builder
+       .addCase(fetchCertificates.pending, (state) => {
+         state.loading = true;
+         state.error = null;
+       })
+       .addCase(fetchCertificates.fulfilled, (state, action) => {
+         state.loading = false;
+         state.certificates = action.payload; // Update Redux state
+       })
+       .addCase(fetchCertificates.rejected, (state, action) => {
+         state.loading = false;
+         state.error = action.payload;
+       })
+
+      // Add Certificate
+      .addCase(addCertificate.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addCertificate.fulfilled, (state, action) => {
+        state.loading = false;
+        state.certificates.push(action.payload);
+      })
+      .addCase(addCertificate.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Delete Certificate
+      .addCase(deleteCertificate.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteCertificate.fulfilled, (state, action) => {
+        state.loading = false;
+        state.certificates = action.payload;
+      })
+      .addCase(deleteCertificate.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
-          // CERTIFICATE STATE
-      
   },
 });
 

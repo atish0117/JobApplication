@@ -7,7 +7,9 @@ import {
   deleteProject,
   fetchJobPosts,
   deleteJobPost,
-  
+  fetchCertificates,
+  addCertificate,
+  deleteCertificate,
 } from "../../Redux/features/PostServiceF";
 import { useNavigate, Link } from "react-router-dom";
 import { updateSelfNote } from "../../Redux/features/PostServiceF"; // Path to your updateSelfNote action
@@ -40,6 +42,7 @@ const Newprofile = () => {
     role,
     projects,
     jobPosts,
+    certificates,
     status,
     loading,
     error,
@@ -194,141 +197,33 @@ const Newprofile = () => {
   console.log("Resume URL after upload:", resumeUrl);
   console.log("Profile ID:", profile?.$id);
 
-  // state for certificate
-  const [certificates, setCertificates] = useState([]); // List of certificates
-  const [isAdding, setIsAdding] = useState(false); // Toggle for modal visibility
-  const [certificateFile, setCertificateFile] = useState(null); // Certificate file to upload
-  const [certificateTitle, setCertificateTitle] = useState(""); // Certificate title input
-
-
  
 
-  // Fetch certificates
-  const fetchCertificates = async () => {
-    try {
-      const databases = new Databases(client);
-      const response = await databases.getDocument(
-        config.appwriteDatabaseId,
-        config.appwriteCollectionIdJobaryProfileId,
-        profile ?.$id
-      );
+  const [isAdding, setIsAdding] = useState(false);
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [certificateTitle, setCertificateTitle] = useState("");
 
-      const fetchedCertificates = response.certificates
-        ? response.certificates.map((cert) => JSON.parse(cert))
-        : [];
-
-      setCertificates(fetchedCertificates);
-    } catch (error) {
-      console.error("Error fetching certificates:", error.message);
+  useEffect(() => {
+    if (profile) {
+      dispatch(fetchCertificates()); // Fetch certificates when profile loads
     }
-  };
+  }, [dispatch, profile]); // <-- Re-fetch when length changes
+  
 
-  // Handle certificate file input
   const handleCertificateUpload = (e) => {
-    const file = e.target.files[0];
-    setCertificateFile(file);
+    setCertificateFile(e.target.files[0]);
   };
 
-  // Save certificate
   const saveCertificate = async () => {
     if (!certificateFile || !certificateTitle) {
       alert("Please provide a certificate title and file.");
       return;
     }
-
-    // loading(true);
-    try {
-      const storage = new Storage(client);
-      const databases = new Databases(client);
-
-      // Upload certificate file
-      const fileResponse = await storage.createFile(
-        config.appwriteBucketId,
-        ID.unique(),
-        certificateFile
-      );
-
-      // Step 2: Create a new certificate object
-      const newCertificate = {
-        title: certificateTitle,
-        fileId: fileResponse.$id,
-      };
-
-      // Step 3: Serialize the new certificate object to a JSON string
-      const serializedCertificate = JSON.stringify(newCertificate);
-
-      // Step 4: Append the new serialized certificate to the existing list
-      const updatedCertificates = [
-        ...certificates.map((cert) => JSON.stringify(cert)), // Ensure existing certificates are strings
-        serializedCertificate,
-      ];
-
-      // Update database
-      await databases.updateDocument(
-        config.appwriteDatabaseId,
-        config.appwriteCollectionIdJobaryProfileId,
-        profile.$id,
-        { certificates: updatedCertificates }
-      );
-
-      // Refresh certificates
-      fetchCertificates();
-      setIsAdding(false); // Close modal
-      setCertificateFile(null); // Reset file
-      setCertificateTitle(""); // Reset title
-    } catch (error) {
-      console.error("Error saving certificate:", error.message);
-    } finally {
-      // setLoading(false);
-    }
+     dispatch(addCertificate({ certificateTitle, certificateFile }));
+    setIsAdding(false);
+    setCertificateFile(null);
+    setCertificateTitle("");
   };
-  // delete Certificate Function
-  const deleteCertificate = async (index) => {
-    if (!window.confirm("Are you sure you want to delete this certificate?")) {
-      return;
-    }
-
-    try {
-      const storage = new Storage(client);
-      const databases = new Databases(client);
-
-      // Get the fileId of the certificate to delete
-      const certificateToDelete = certificates[index];
-      const { fileId } = certificateToDelete;
-
-      // Step 1: Delete the file from Appwrite storage
-      await storage.deleteFile(config.appwriteBucketId, fileId);
-
-      // Step 2: Remove the certificate from the certificates array
-      const updatedCertificates = certificates.filter((_, i) => i !== index);
-
-      // Step 3: Serialize remaining certificates
-      const serializedCertificates = updatedCertificates.map((cert) =>
-        JSON.stringify(cert)
-      );
-
-      // Step 4: Update the database
-      await databases.updateDocument(
-        config.appwriteDatabaseId,
-        config.appwriteCollectionIdJobaryProfileId,
-        profile.$id,
-        {
-          certificates: serializedCertificates,
-        }
-      );
-
-      // Refresh certificates in UI
-      fetchCertificates();
-      alert("Certificate deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting certificate:", error.message);
-      alert("Failed to delete the certificate.");
-    }
-  };
-
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
 
   const handleSendMessage = async (profile) => {
     try {
@@ -387,7 +282,9 @@ const Newprofile = () => {
 
   // Combine related fetches into a single useEffect
   useEffect(() => {
-    dispatch(fetchUserProfile());
+    dispatch(fetchUserProfile()).then(() => {
+      dispatch(fetchCertificates()); // Fetch certificates after profile is loaded
+    });
     dispatch(fetchProjects());
   }, [dispatch]);
 
@@ -424,6 +321,7 @@ const Newprofile = () => {
   );
 
   console.log("Certificates array:", certificates);
+
 
   // Loading and error states
   if (status === "loading") return <p>Loading...</p>;
@@ -671,71 +569,41 @@ const Newprofile = () => {
 
               {/* Certificate Boxs */}
               <div className="max-w-4xl mx-auto p-6 bg-neutral-500">
-                <h2 className="text-2xl font-semibold text-center mb-6">
-                  Certificates
-                </h2>
+      <h2 className="text-2xl font-semibold text-center mb-6">Certificates</h2>
 
-                {/* Add Certificate Button */}
-                <div className="flex justify-end mb-4">
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-                    onClick={() => setIsAdding(true)}
-                  >
-                    <FaPlus className="mr-2" /> Add Certificate
-                  </button>
-                </div>
+      <div className="flex justify-end mb-4">
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center" onClick={() => setIsAdding(true)}>
+          <FaPlus className="mr-2" /> Add Certificate
+        </button>
+      </div>
 
-                {/* Display Certificates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {certificates.length > 0 ? (
-                    certificates.map((certificate, index) => (
-                      <div
-                        key={index}
-                        className="p-6 border border-gray-200 rounded-lg shadow-lg bg-white flex flex-col items-center transition-transform duration-200 hover:scale-105"
-                      >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-                          {certificate.title}
-                        </h3>
-
-                        {/* Certificate Image */}
-                        <div className="w-full h-52 overflow-hidden rounded-lg border border-gray-300">
-                          <img
-                            src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/view?project=${config.appwriteProjectId}`}
-                            alt={certificate.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        {/* Buttons Section */}
-                        <div className="flex justify-between w-full mt-4">
-                          <button
-                            className="flex-1 bg-green-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition"
-                            onClick={() => {
-                              const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download`;
-                              window.open(downloadLink, "_blank");
-                            }}
-                          >
-                            <FaFileDownload className="mr-2" /> Download
-                          </button>
-
-                          <button
-                            className="flex-1 bg-red-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-red-600 transition ml-2"
-                            onClick={() => deleteCertificate(index)}
-                          >
-                            <FaTrash className="mr-2" /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-center col-span-3 text-lg font-medium">
-                      No certificates found.
-                    </p>
-                  )}
-                </div>
-
-                {/* Add Certificate Modal */}
-                {isAdding && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {certificates.length > 0 ? (
+          certificates.map((certificate, index) => (
+            <div key={index} className="p-6 border rounded-lg shadow-lg bg-white flex flex-col items-center">
+              <h3 className="text-lg font-semibold mb-3">{certificate.title}</h3>
+              <div className="w-full h-52 overflow-hidden rounded-lg border">
+                <img
+                  src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate?.fileId}/view?project=${config.appwriteProjectId}`}
+                  alt={certificate.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex justify-between w-full mt-4">
+                <button className="bg-green-500 text-white px-4 py-2 rounded-md" onClick={() => window.open(`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download?project=${config.appwriteProjectId}`, "_blank")}>
+                  <FaFileDownload className="mr-2" /> Download
+                </button>
+                <button className="bg-red-500 text-white px-4 py-2 rounded-md" onClick={() => dispatch(deleteCertificate(index))}>
+                  <FaTrash className="mr-2" /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-center">No certificates found.</p>
+        )}
+      </div>
+      {isAdding && (
                   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
                       <h3 className="text-2xl font-semibold text-center mb-4">
@@ -791,7 +659,11 @@ const Newprofile = () => {
                     </div>
                   </div>
                 )}
-              </div>
+     
+    </div>
+
+
+                
 
               {/* Projects Section */}
               <div className="bg-gray-200 rounded-lg p-4">
