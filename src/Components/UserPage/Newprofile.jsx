@@ -7,8 +7,9 @@ import {
   deleteProject,
   fetchJobPosts,
   deleteJobPost,
+  
 } from "../../Redux/features/PostServiceF";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { updateSelfNote } from "../../Redux/features/PostServiceF"; // Path to your updateSelfNote action
 import config from "../../appWrite/config";
 import client from "../../appWrite/AppwriteConfigPost";
@@ -28,16 +29,21 @@ import {
   FaLinkedin,
   FaEdit,
   FaPlus,
-  FaTrash ,
+  FaTrash,
 } from "react-icons/fa";
-import {
-  CiEdit,
-} from "react-icons/ci";
+import { CiEdit } from "react-icons/ci";
 const Newprofile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { profile, role, projects, jobPosts, status, loading, error } =
-    useSelector((state) => state.form);
+  const {
+    profile,
+    role,
+    projects,
+    jobPosts,
+    status,
+    loading,
+    error,
+  } = useSelector((state) => state.form);
   console.log("check profilr data", profile);
   console.log("check project data", projects);
   console.log("check jobPosts data", jobPosts);
@@ -78,9 +84,11 @@ const Newprofile = () => {
     linkedin: "",
     github: "",
     // X: null
+    portfolio: "",
   });
   const [resumeFile, setResumeFile] = useState(null);
-  const [resumeUrl, setResumeUrl] = useState(""); // To store the download URL after upload
+  const [uploading, setUploading] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState(profile?.resume || ""); // To store the download URL after upload
   const [isEditing, setIsEditing] = useState(false); // Toggle for showing/hiding the form
   const handleSocialLinkChange = (e) => {
     const { name, value } = e.target;
@@ -89,56 +97,112 @@ const Newprofile = () => {
       [name]: value,
     }));
   };
-  const handleResumeUpload = (e) => {
+  // Handle Resume Upload
+  const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
-    setResumeFile(file);
-  };
-  const updateUserProfile = async () => {
+    if (!file) return;
+
+    setUploading(true);
+    setResumeFile(file); // Update state with the file
+    console.log("Uploading file:", file);
+
     try {
       const storage = new Storage(client);
+      const response = await storage.createFile(
+        config.appwriteBucketId,
+        ID.unique(),
+        file
+      );
+
+      const newFileId = response.$id; // Store the file ID
+      console.log("New Resume File ID:", newFileId);
+
+      setResumeUrl(newFileId); // Update state
+      await updateUserProfile(newFileId); // Update profile immediately
+    } catch (error) {
+      console.error("Resume upload failed:", error);
+    }
+
+    setUploading(false);
+  };
+
+  // Handle Resume Download
+  const handleResumeDownload = async () => {
+    if (!resumeUrl) {
+      alert("No resume available for download.");
+      return;
+    }
+
+    try {
+      const storage = new Storage(client);
+      const fileDownloadUrl = storage.getFileDownload(
+        config.appwriteBucketId,
+        resumeUrl
+      );
+
+      const link = document.createElement("a");
+      link.href = fileDownloadUrl;
+      link.setAttribute("download", "resume.pdf");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Failed to download resume:", error);
+      alert("Failed to download resume. Try again.");
+    }
+  };
+
+  const updateUserProfile = async (newResumeId) => {
+    if (!newResumeId) {
+      console.error("No resume ID available to update.");
+      return;
+    }
+
+    try {
       const databases = new Databases(client);
 
-      let resumeUploadResponse = null;
-
-      // Upload the resume to Appwrite Storage if a new file is selected
-      if (resumeFile) {
-        resumeUploadResponse = await storage.createFile(
-          config.appwriteBucketId,
-          ID.unique(),
-          resumeFile
-        );
-        setResumeUrl(resumeUploadResponse.$id); // Save the resume file ID
-      }
-      // Construct updated profile data
+      // Prepare updated profile data
       const updatedProfileData = {
         linkedin: socialLinks.linkedin,
         github: socialLinks.github,
-        // X: socialLinks.X,
-        resume: resumeUploadResponse ? resumeUploadResponse.$id : resumeUrl, // Use the new file ID if uploaded
+        portfolio: socialLinks.portfolio,
+        resume: newResumeId, // Use the new resume ID
       };
-      // Update the user profile in Appwrite Database
+
+      console.log("Updating profile with:", updatedProfileData);
+
+      // Update the user profile in Appwrite
       const response = await databases.updateDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionIdJobaryProfileId,
-        profile.$id, // Replace with actual user profile document ID
+        profile?.$id, // Ensure this is correct
         updatedProfileData
       );
+
       console.log("Profile updated successfully:", response);
     } catch (error) {
       console.error("Error updating profile:", error.message);
     }
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     updateUserProfile();
     setIsEditing(false); // Close the form after saving
   };
-      // state for certificate 
+  console.log("resume :", resumeUrl);
+  console.log("Resume URL after upload:", resumeUrl);
+  console.log("Profile ID:", profile?.$id);
+
+  // state for certificate
   const [certificates, setCertificates] = useState([]); // List of certificates
   const [isAdding, setIsAdding] = useState(false); // Toggle for modal visibility
   const [certificateFile, setCertificateFile] = useState(null); // Certificate file to upload
   const [certificateTitle, setCertificateTitle] = useState(""); // Certificate title input
-  // Fetch certificates from database
+
+
+ 
+
   // Fetch certificates
   const fetchCertificates = async () => {
     try {
@@ -146,7 +210,7 @@ const Newprofile = () => {
       const response = await databases.getDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionIdJobaryProfileId,
-        profile.$id
+        profile ?.$id
       );
 
       const fetchedCertificates = response.certificates
@@ -184,20 +248,20 @@ const Newprofile = () => {
         certificateFile
       );
 
-       // Step 2: Create a new certificate object
-    const newCertificate = {
-      title: certificateTitle,
-      fileId: fileResponse.$id,
-    };
+      // Step 2: Create a new certificate object
+      const newCertificate = {
+        title: certificateTitle,
+        fileId: fileResponse.$id,
+      };
 
-     // Step 3: Serialize the new certificate object to a JSON string
-     const serializedCertificate = JSON.stringify(newCertificate);
+      // Step 3: Serialize the new certificate object to a JSON string
+      const serializedCertificate = JSON.stringify(newCertificate);
 
       // Step 4: Append the new serialized certificate to the existing list
-    const updatedCertificates = [
-      ...certificates.map((cert) => JSON.stringify(cert)), // Ensure existing certificates are strings
-      serializedCertificate,
-    ];
+      const updatedCertificates = [
+        ...certificates.map((cert) => JSON.stringify(cert)), // Ensure existing certificates are strings
+        serializedCertificate,
+      ];
 
       // Update database
       await databases.updateDocument(
@@ -223,26 +287,26 @@ const Newprofile = () => {
     if (!window.confirm("Are you sure you want to delete this certificate?")) {
       return;
     }
-  
+
     try {
       const storage = new Storage(client);
       const databases = new Databases(client);
-  
+
       // Get the fileId of the certificate to delete
       const certificateToDelete = certificates[index];
       const { fileId } = certificateToDelete;
-  
+
       // Step 1: Delete the file from Appwrite storage
       await storage.deleteFile(config.appwriteBucketId, fileId);
-  
+
       // Step 2: Remove the certificate from the certificates array
       const updatedCertificates = certificates.filter((_, i) => i !== index);
-  
+
       // Step 3: Serialize remaining certificates
       const serializedCertificates = updatedCertificates.map((cert) =>
         JSON.stringify(cert)
       );
-  
+
       // Step 4: Update the database
       await databases.updateDocument(
         config.appwriteDatabaseId,
@@ -252,7 +316,7 @@ const Newprofile = () => {
           certificates: serializedCertificates,
         }
       );
-  
+
       // Refresh certificates in UI
       fetchCertificates();
       alert("Certificate deleted successfully!");
@@ -261,7 +325,6 @@ const Newprofile = () => {
       alert("Failed to delete the certificate.");
     }
   };
-  
 
   useEffect(() => {
     fetchCertificates();
@@ -360,7 +423,8 @@ const Newprofile = () => {
     [dispatch]
   );
 
-console.log("Certificates array:", certificates);
+  console.log("Certificates array:", certificates);
+
   // Loading and error states
   if (status === "loading") return <p>Loading...</p>;
   return (
@@ -380,23 +444,25 @@ console.log("Certificates array:", certificates);
                 <h1 className="text-xl font-bold">Employee's Info Page</h1>
                 <div className="space-x-4">
                   <button className="px-4 py-2 bg-[#0e1822] hover:bg-[#ff4655]  rounded">
-                    <IoHomeOutline className="text-2xl text-white" />
+                    <Link to={"/userhomepage"}>
+                      <IoHomeOutline className="text-xl lg:text-2xl text-white" />
+                    </Link>
                   </button>
-                  <button className="px-4 py-2 bg-yellow-300 rounded">
-                    <CiEdit className="text-xl lg:text-3xl" />
+                  <button className="px-4 py-2 bg-[#0e1822] hover:bg-[#ff4655]  rounded">
+                    <CiEdit className="text-xl lg:text-2xl text-white " />
                   </button>
-                  <button className=" bg-yellow-300 rounded">
-                    <div className="relative max-w-lg mx-auto p-4 border border-gray-200 rounded-lg shadow-lg bg-white">
-                      <h2 className="text-sm font-semibold text-center">
+                  <button className=" bg-[#0e1822] hover:bg-[#ff4655] rounded">
+                    <div className="relative max-w-lg  mx-auto rounded-lg shadow-l">
+                      {/* <h2 className="text-sm font-semibold text-center">
                         SocialLink
-                      </h2>
+                      </h2> */}
 
                       {/* Edit Button */}
                       <button
-                        className="absolute right-0 bottom-0 p-1 text-black rounded-full   hover:text-yellow-300"
+                        className=" text-xl px-4 py-2 lg:text-2xl text-white right-0 bottom-0 p-1 rounded-full"
                         onClick={() => setIsEditing(true)} // Show the modal form on click
                       >
-                        <FaEdit size={18} />
+                        <FaEdit className="text-xl lg:text-2xl text-white" />
                       </button>
 
                       {/* Modal Form */}
@@ -447,26 +513,15 @@ console.log("Certificates array:", certificates);
 
                               {/* Resume Upload Section */}
                               <div className="space-y-4 mt-6">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-2 w-full">
                                   <input
-                                    type="file"
-                                    onChange={handleResumeUpload}
+                                    type="url"
+                                    name="portfolio"
+                                    value={socialLinks.portfolio}
+                                    onChange={handleSocialLinkChange}
+                                    placeholder="Enter Portfolio URL"
                                     className="p-3 border border-gray-300 rounded-md w-full"
-                                    accept=".pdf,.jpg,.png,.doc,.docx"
                                   />
-                                  {resumeFile && (
-                                    <button
-                                      type="button"
-                                      className="bg-green-500 text-white p-2 rounded-md"
-                                      onClick={() => {
-                                        const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${resumeUrl}/download`;
-                                        window.open(downloadLink, "_blank");
-                                      }}
-                                    >
-                                      <FaFileDownload className="inline-block mr-2" />{" "}
-                                      Download Resume
-                                    </button>
-                                  )}
                                 </div>
                               </div>
 
@@ -497,7 +552,7 @@ console.log("Certificates array:", certificates);
               {/* Main Section */}
               <div className="grid grid-cols-7 gap-4">
                 {/* Profile Section */}
-                <div className="col-span-4 bg-gray-200 p-4 flex relative">
+                <div className="col-span-4 bg-gray-200 p-4 flex relative  items-start justify-between">
                   <div className="w-40 h-40 bg-gray-300 rounded-full mx-auto">
                     <img
                       src={profile?.profileImageUrl}
@@ -505,56 +560,99 @@ console.log("Certificates array:", certificates);
                       className="profile-image w-full h-full rounded-full"
                     />
                   </div>
-                  <div className="details-part-1">
-                    <p className="text-center mt-2">Name: {profile.FullName}</p>
-                    <p className="text-center">Age:{profile.Age}</p>
-                    <p className="text-center">Gender:{profile.Gender}</p>
-                    <p className="text-center">
-                      Education: {profile.Education}
-                    </p>
-                    <p className="text-center">Address: {profile.Address}</p>
+                  <div className="details-part-1 p-4">
+                    <p className="text-left mt-2">Name: {profile.FullName}</p>
+                    <p className="text-left">Age:{profile.Age}</p>
+                    <p className="text-left">Gender:{profile.Gender}</p>
+                    <p className="text-left">Education: {profile.Education}</p>
+                    <p className="text-left">Address: {profile.Address}</p>
                   </div>
                   <div className="border-2 rounded border-gray-400 mx-2"></div>
-                  <div className="detail-part-2">
-                    <p className="text-center mt-2">
-                      Contact: {profile.Contact}
+                  <div className="detail-part-2 py-4">
+                    <p className="text-left mt-2">Contact: {profile.Contact}</p>
+                    <p className="text-left">Email:{profile.email}</p>
+                    <p className="text-left">Status: {profile.role}</p>
+                    <p className="text-left">Address: {profile.Address}</p>
+                  </div>
+                </div>
+                {/* Resume Section */}
+                <div className="col-span-3 bg-gray-300 rounded-lg p-4 flex flex-col w-full">
+                  <h3 className="text-lg font-semibold mb-2">Resume</h3>
+
+                  {resumeUrl ? (
+                    <img
+                      src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${resumeUrl}/view?project=${config.appwriteProjectId}`}
+                      className="w-full h-52 border rounded"
+                      title="Resume"
+                      onError={() =>
+                        alert(
+                          "Failed to load resume. Please upload a new file."
+                        )
+                      }
+                    />
+                  ) : (
+                    <p className="text-center text-gray-600">
+                      No resume uploaded
                     </p>
-                    <p className="text-center">Email:{profile.email}</p>
-                    <p className="text-center">Status: {profile.role}</p>
-                    <p className="text-center">Address: {profile.Address}</p>
+                  )}
+
+                  <div className="flex gap-4 mt-3">
+                    <button
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      onClick={handleResumeDownload}
+                      disabled={!resumeUrl}
+                    >
+                      <FaFileDownload className="inline-block mr-2" /> Download
+                    </button>
+                    <label className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer">
+                      {uploading ? "Uploading..." : "Upload"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".jpg,.png,.pdf,.doc,.docx"
+                        onChange={handleResumeUpload}
+                      />
+                    </label>
                   </div>
                 </div>
 
                 {/* Self Notes */}
-                <div className="col-span-3 bg-gray-300 rounded-lg p-4 flex flex-col flex-wrap w-full">
-                  <div className="">
+                <div className="col-span-7 bg-gray-300 rounded-lg p-4 flex flex-col w-full max-h-[80vh] overflow-y-auto">
+                  {/* Self-Note Section */}
+                  <div className="flex-grow">
                     {isEditable ? (
                       <textarea
-                        className="w-full p-2 border border-gray-300 rounded"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                         value={selfNote}
                         onChange={(e) => setSelfNote(e.target.value)}
+                        rows={5} // Height adjustment for textarea
                       />
                     ) : (
-                      <div className="selfnote-box ms-7 max-w-96 break-words h-52 overflow-hidden overflow-y-scroll">
-{profile.selfNote}
+                      <div className="selfnote-box p-3 border border-gray-200 text-xl max-h-[30vh] bg-gray-100 rounded-lg text-gray-800 break-words overflow-y-auto">
+                        {profile.selfNote || "No self-note available."}
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={handleToggleEdit}
-                    className="toggle-edit-btn"
-                  >
-                    {isEditable ? "Cancel" : "Edit"}
-                  </button>
-                  {isEditable && (
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex justify-between items-center gap-3">
                     <button
-                      onClick={handleSave}
-                      className="save-btn"
-                      disabled={loading}
+                      onClick={handleToggleEdit}
+                      className="px-5 py-2 rounded-md text-white font-medium bg-blue-500 hover:bg-blue-600 transition duration-200"
                     >
-                      {loading ? "Saving..." : "Save"}
+                      {isEditable ? "Cancel" : "Edit"}
                     </button>
-                  )}
+
+                    {isEditable && (
+                      <button
+                        onClick={handleSave}
+                        className="px-6 py-2 rounded-md text-white font-medium bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                        disabled={loading}
+                      >
+                        {loading ? "Saving..." : "Save"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
               {/* Skills Section */}
@@ -571,117 +669,129 @@ console.log("Certificates array:", certificates);
                 })}
               </div>
 
+              {/* Certificate Boxs */}
+              <div className="max-w-4xl mx-auto p-6 bg-neutral-500">
+                <h2 className="text-2xl font-semibold text-center mb-6">
+                  Certificates
+                </h2>
 
-                        {/* Certificate Boxs */}
-                        <div className="max-w-4xl mx-auto p-6 bg-neutral-500">
-      <h2 className="text-2xl font-semibold text-center mb-6">Certificates</h2>
+                {/* Add Certificate Button */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+                    onClick={() => setIsAdding(true)}
+                  >
+                    <FaPlus className="mr-2" /> Add Certificate
+                  </button>
+                </div>
 
-      {/* Add Certificate Button */}
-      <div className="flex justify-end mb-4">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-          onClick={() => setIsAdding(true)}
-        >
-          <FaPlus className="mr-2" /> Add Certificate
-        </button>
-      </div>
+                {/* Display Certificates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {certificates.length > 0 ? (
+                    certificates.map((certificate, index) => (
+                      <div
+                        key={index}
+                        className="p-6 border border-gray-200 rounded-lg shadow-lg bg-white flex flex-col items-center transition-transform duration-200 hover:scale-105"
+                      >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
+                          {certificate.title}
+                        </h3>
 
-      {/* Display Certificates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {certificates.length > 0 ? (
-    certificates.map((certificate, index) => (
-      <div
-        key={index}
-        className="p-4 border border-gray-200 rounded-lg shadow-md flex flex-col items-center"
-      >
-        <h3 className="text-lg font-medium mb-2">{certificate.title}</h3>
-        <div className="flex space-x-4">
+                        {/* Certificate Image */}
+                        <div className="w-full h-52 overflow-hidden rounded-lg border border-gray-300">
+                          <img
+                            src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/view?project=${config.appwriteProjectId}`}
+                            alt={certificate.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
 
-        <img
-                    src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/view?project=${config.appwriteProjectId}`}
-                    alt={certificate.title}
-                    className="w-full h-64 object-cover rounded-lg mt-4"
-                  />
-          <button
-            className="bg-green-500 text-white px-3 py-2 rounded-md mt-2"
-            onClick={() => {
-              const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download`;
-              window.open(downloadLink, "_blank");
-            }}
-          >
-            <FaFileDownload className="inline-block mr-2" />
-          </button>
-          <button
-            className="bg-red-500 text-white px-3 py-2 rounded-md mt-2"
-            onClick={() => deleteCertificate(index)}
-          >
-            <FaTrash className="inline-block mr-2" />
-          </button>
-        </div>
-      </div>
-    ))
-  ) : (
-    <p className="text-gray-300 text-center col-span-3">
-      No certificates found.
-    </p>
-  )}
-</div>
+                        {/* Buttons Section */}
+                        <div className="flex justify-between w-full mt-4">
+                          <button
+                            className="flex-1 bg-green-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition"
+                            onClick={() => {
+                              const downloadLink = `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download`;
+                              window.open(downloadLink, "_blank");
+                            }}
+                          >
+                            <FaFileDownload className="mr-2" /> Download
+                          </button>
 
+                          <button
+                            className="flex-1 bg-red-500 text-white px-4 py-2 rounded-md flex items-center justify-center hover:bg-red-600 transition ml-2"
+                            onClick={() => deleteCertificate(index)}
+                          >
+                            <FaTrash className="mr-2" /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-center col-span-3 text-lg font-medium">
+                      No certificates found.
+                    </p>
+                  )}
+                </div>
 
-      {/* Add Certificate Modal */}
-      {isAdding && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
-            <h3 className="text-2xl font-semibold text-center mb-4">Add Certificate</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                saveCertificate();
-              }}
-            >
-              <div className="space-y-4">
-                {/* Certificate Title */}
-                <input
-                  type="text"
-                  placeholder="Certificate Title"
-                  value={certificateTitle}
-                  onChange={(e) => setCertificateTitle(e.target.value)}
-                  className="p-3 border border-gray-300 rounded-md w-full"
-                  required
-                />
+                {/* Add Certificate Modal */}
+                {isAdding && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
+                      <h3 className="text-2xl font-semibold text-center mb-4">
+                        Add Certificate
+                      </h3>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          saveCertificate();
+                        }}
+                      >
+                        <div className="space-y-4">
+                          {/* Certificate Title */}
+                          <input
+                            type="text"
+                            placeholder="Certificate Title"
+                            value={certificateTitle}
+                            onChange={(e) =>
+                              setCertificateTitle(e.target.value)
+                            }
+                            className="p-3 border border-gray-300 rounded-md w-full"
+                            required
+                          />
 
-                {/* Certificate File */}
-                <input
-                  type="file"
-                  onChange={handleCertificateUpload}
-                  className="p-3 border border-gray-300 rounded-md w-full"
-                  accept=".pdf,.jpg,.png,.doc,.docx"
-                  required
-                />
+                          {/* Certificate File */}
+                          <input
+                            type="file"
+                            onChange={handleCertificateUpload}
+                            className="p-3 border border-gray-300 rounded-md w-full"
+                            accept=".pdf,.jpg,.png,.doc,.docx"
+                            required
+                          />
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="mt-6 flex justify-end space-x-4">
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+                            onClick={() => setIsAdding(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            disabled={loading}
+                          >
+                            {loading ? "Saving..." : "Save Certificate"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Buttons */}
-              <div className="mt-6 flex justify-end space-x-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
-                  onClick={() => setIsAdding(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  disabled={loading}
-                >
-                  {loading ? "Saving..." : "Save Certificate"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
 
               {/* Projects Section */}
               <div className="bg-gray-200 rounded-lg p-4">
@@ -702,9 +812,9 @@ console.log("Certificates array:", certificates);
 
                 {/* Project List */}
                 <div className="grid grid-cols-4 gap-4 mt-4">
-                  {projects?.map((project) => (
+                  {projects?.map((project, ind) => (
                     <div
-                      key={project.id}
+                      key={ind}
                       className="border border-gray-300 rounded-lg p-4 cursor-pointer"
                       onClick={() => setSelectedProject(project)} // Open project details
                     >
@@ -747,7 +857,9 @@ console.log("Certificates array:", certificates);
                     alt={selectedProject.title}
                     className="w-full h-64 object-cover rounded-lg mt-4"
                   />
-                  <p className="text-lg mt-4 break-words">{selectedProject.description}</p>
+                  <p className="text-lg mt-4 break-words">
+                    {selectedProject.description}
+                  </p>
                   <div className="mt-6">
                     <h2 className="text-xl font-bold">Technologies Used:</h2>
                     <p className="text-md mt-2 break-words">
@@ -909,7 +1021,7 @@ console.log("Certificates array:", certificates);
                     Employer Profile
                   </h1>
                   <button
-                    onClick={() => navigate("/home")} // Replace with the actual navigation method
+                    onClick={() => navigate("/userhomepage")} // Replace with the actual navigation method
                     className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"
                   >
                     <FaHome className="text-gray-700 text-2xl" />
@@ -1007,13 +1119,6 @@ console.log("Certificates array:", certificates);
                         </p>
                         <p className="text-sm text-gray-600">
                           <strong>Salary:</strong> {post.salary}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Description:</strong> {post.jobDescription}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Responsibilities:</strong>{" "}
-                          {post.keyResponsibility}
                         </p>
                         <p className="text-sm text-gray-600">
                           <strong>Skills:</strong> {post.professionalSkills}

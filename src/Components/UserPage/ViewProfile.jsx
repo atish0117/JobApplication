@@ -87,6 +87,22 @@ function ViewProfile() {
           </div>
         </div>
 
+        {/* Resume Display Section */}
+        <div className="flex flex-col items-center mt-4">
+          {selectedProfile?.resumeId ? (
+            <a
+              href={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${selectedProfile.resumeId}/view?project=${config.appwriteProjectId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            >
+              Download Resume
+            </a>
+          ) : (
+            <p className="text-gray-500">Resume not uploaded yet.</p>
+          )}
+        </div>
+
         {/* Skills Section */}
         <div className="bg-yellow-100 rounded-lg p-6">
           <h2 className="text-lg font-bold text-center mb-4">Skills</h2>
@@ -104,6 +120,50 @@ function ViewProfile() {
               <p className="text-gray-500">No skills listed.</p>
             )}
           </div>
+        </div>
+
+        {/* Certifications Section */}
+        <div className="bg-yellow-100 rounded-lg p-6 mt-6">
+          <h2 className="text-lg font-bold text-center mb-4">Certifications</h2>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {selectedProfile?.certifications?.length > 0 ? (
+              selectedProfile.certifications.map((cert, ind) => (
+                <span
+                  key={ind}
+                  className="bg-yellow-200 text-sm font-medium text-gray-800 rounded-full px-3 py-1"
+                >
+                  {cert}
+                </span>
+              ))
+            ) : (
+              <p className="text-gray-500">No certifications listed.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Portfolio Links Section */}
+        <div className="bg-yellow-100 rounded-lg p-6 mt-6">
+          <h2 className="text-lg font-bold text-center mb-4">
+            Portfolio Links
+          </h2>
+          <ul className="list-disc list-inside">
+            {selectedProfile?.portfolioLinks?.length > 0 ? (
+              selectedProfile.portfolioLinks.map((link, ind) => (
+                <li key={ind}>
+                  <a
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {link}
+                  </a>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No portfolio links listed.</p>
+            )}
+          </ul>
         </div>
 
         {/* Projects Section */}
@@ -137,7 +197,9 @@ function ViewProfile() {
         {selectedProject && (
           <div className="p-6 bg-gray-800 rounded-lg shadow-md mt-6 h-[500px] overflow-y-auto">
             {/* Project Title */}
-            <h1 className="text-3xl font-bold uppercase">{selectedProject.title}</h1>
+            <h1 className="text-3xl font-bold uppercase">
+              {selectedProject.title}
+            </h1>
 
             {/* Project Thumbnail */}
             <img
@@ -154,7 +216,9 @@ function ViewProfile() {
             {/* Technologies Used */}
             <div className="mt-6">
               <h2 className="text-xl font-bold">Technologies Used:</h2>
-              <p className="text-md mt-2 break-words">{selectedProject.technologies}</p>
+              <p className="text-md mt-2 break-words">
+                {selectedProject.technologies}
+              </p>
             </div>
 
             {/* Gallery Section */}

@@ -462,6 +462,9 @@ export const fetchSingleUserProfile = createAsyncThunk(
   }
 );
 
+// Fetch Certificates
+
+
 // Slice
 const formSlice = createSlice({
   name: "form",
@@ -647,6 +650,8 @@ const formSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+          // CERTIFICATE STATE
+      
   },
 });
 
