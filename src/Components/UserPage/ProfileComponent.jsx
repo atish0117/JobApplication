@@ -1,11 +1,10 @@
-import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserProfile,
   fetchAllUserProfiles,
 } from "../../Redux/features/PostServiceF";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import config from "../../appWrite/config";
 import { Databases } from "appwrite";
 import client from "../../appWrite/AppwriteConfigPost";
@@ -25,18 +24,37 @@ import {
 } from "react-icons/ci";
 import { CgProfile } from "react-icons/cg";
 import Newprofile from "./Newprofile";
+import authService from "../../appWrite/AppwriteConfig";
+import { logout, getCurrentUser } from "../../Redux/features/AuthserviceF";
+
 const ProfileComponent = () => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { profile, role, loading, error, profiles, status } = useSelector(
     (state) => state.form
   );
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
+
   console.log("all user profile", profiles);
 
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, [dispatch]);
   console.log("data", profile);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true); // Disable button immediately
+    try {
+      await authService.account.deleteSession("current");
+      localStorage.removeItem("Token");
+      dispatch(logout());
+      navigate("/");
+    } catch (error) {
+      console.log("Logout failed", error.message);
+      setIsLoggingOut(false); 
+    }
+  };
 
   return (
     <>
@@ -51,7 +69,7 @@ const ProfileComponent = () => {
                 Status: Looking for job
               </span>
               <Link to={"/newprofile"}>
-              <CgProfile className="text-xl lg:text-3xl" />
+                <CgProfile className="text-xl lg:text-3xl" />
               </Link>
             </div>
 
@@ -127,8 +145,24 @@ const ProfileComponent = () => {
                   </div>
                 </>
               )}
-              <button className="mt-5 bg-[#ff4655] text-white px-4 py-2 rounded">
-                Log Out
+              <button className="mt-5 bg-[#ff4655] text-white  rounded">
+                {user != null ? (
+                  <div>
+                    <button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut} // Disable button when logging out
+                      className={`w-full px-4 py-2 transition ${
+                        isLoggingOut
+                          ? "bg-red-300 cursor-not-allowed"
+                          : "bg-red-400"
+                      }`}
+                    >
+                      {isLoggingOut ? "Logging out..." : "Logout"}
+                    </button>
+                  </div>
+                ) : (
+                  <Link to={"/login"}></Link>
+                )}
               </button>
             </div>
           </div>

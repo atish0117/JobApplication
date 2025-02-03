@@ -6,7 +6,7 @@ import {
   fetchProjects,
 } from "../../Redux/features/PostServiceF";
 import config from "../../appWrite/config";
-import ProfileComponent from "./profileComponent";
+import ProfileComponent from "./ProfileComponent";
 
 function ViewProfile() {
   const { candidateId } = useParams(); // Get the candidate ID from the URL
@@ -17,7 +17,7 @@ function ViewProfile() {
   console.log("viewPage projects", projects);
   useEffect(() => {
     dispatch(fetchSingleUserProfile(candidateId)); // Fetch candidate details
-    dispatch(fetchProjects(candidateId)); // Fetch candidate projects
+    dispatch(fetchProjects(selectedProfile?.email)); // Fetch candidate projects
   }, [dispatch, candidateId]);
 
   console.log("viewProfile candidate", selectedProfile);
@@ -127,12 +127,21 @@ function ViewProfile() {
           <h2 className="text-lg font-bold text-center mb-4">Certifications</h2>
           <div className="flex flex-wrap gap-2 justify-center">
             {selectedProfile?.certifications?.length > 0 ? (
-              selectedProfile.certifications.map((cert, ind) => (
+              selectedProfile.certifications.map((certificate, ind) => (
                 <span
                   key={ind}
                   className="bg-yellow-200 text-sm font-medium text-gray-800 rounded-full px-3 py-1"
                 >
-                  {cert}
+                   <h3 className="text-lg font-semibold mb-3">
+                          {certificate.title}
+                        </h3>
+                        <div className="w-full h-52 overflow-hidden rounded-lg border">
+                          <img
+                            src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate?.fileId}/view?project=${config.appwriteProjectId}`}
+                            alt={certificate.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                 </span>
               ))
             ) : (

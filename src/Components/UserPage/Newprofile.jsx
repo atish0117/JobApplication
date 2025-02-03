@@ -34,6 +34,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
+import { useRef } from "react";
 const Newprofile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ const Newprofile = () => {
   console.log("check project data", projects);
   console.log("check jobPosts data", jobPosts);
   console.log(error);
-
+  const projectFormRef = useRef(null);
   // Move email check into useEffect
   useEffect(() => {
     const email = localStorage.getItem("Token");
@@ -197,8 +198,6 @@ const Newprofile = () => {
   console.log("Resume URL after upload:", resumeUrl);
   console.log("Profile ID:", profile?.$id);
 
- 
-
   const [isAdding, setIsAdding] = useState(false);
   const [certificateFile, setCertificateFile] = useState(null);
   const [certificateTitle, setCertificateTitle] = useState("");
@@ -208,7 +207,6 @@ const Newprofile = () => {
       dispatch(fetchCertificates()); // Fetch certificates when profile loads
     }
   }, [dispatch, profile]); // <-- Re-fetch when length changes
-  
 
   const handleCertificateUpload = (e) => {
     setCertificateFile(e.target.files[0]);
@@ -219,7 +217,7 @@ const Newprofile = () => {
       alert("Please provide a certificate title and file.");
       return;
     }
-     dispatch(addCertificate({ certificateTitle, certificateFile }));
+    dispatch(addCertificate({ certificateTitle, certificateFile }));
     setIsAdding(false);
     setCertificateFile(null);
     setCertificateTitle("");
@@ -321,7 +319,6 @@ const Newprofile = () => {
   );
 
   console.log("Certificates array:", certificates);
-
 
   // Loading and error states
   if (status === "loading") return <p>Loading...</p>;
@@ -554,56 +551,109 @@ const Newprofile = () => {
                 </div>
               </div>
               {/* Skills Section */}
-              <div className="bg-gray-200 rounded-lg p-4">
-                <h2 className="text-lg font-bold">Skills with Experience</h2>
-                {profile.skills.map((skill, inx) => {
-                  return (
-                    <div key={inx} className=" my-4  flex flex-row w-full">
-                      <span className="bg-gray-700  text-white px-2 py-3  rounded ms-9 text-xl">
+              <div className="bg-gray-200 rounded-lg p-4 flex flex-col items-center">
+                <h2 className="text-lg font-bold ">Skills with Experience</h2>
+                <div className=" my-4  flex  w-full justify-center">
+                  {profile.skills.map((skill, inx) => {
+                    return (
+                      <span
+                        key={inx}
+                        className="bg-gray-500 uppercase text-white px-2 py-2  rounded ms-9 text-xl"
+                      >
                         {skill}
                       </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Certificate Boxs */}
               <div className="max-w-4xl mx-auto p-6 bg-neutral-500">
-      <h2 className="text-2xl font-semibold text-center mb-6">Certificates</h2>
+                <h2 className="text-2xl font-semibold text-center mb-6">
+                  Certificates
+                </h2>
 
-      <div className="flex justify-end mb-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center" onClick={() => setIsAdding(true)}>
-          <FaPlus className="mr-2" /> Add Certificate
-        </button>
-      </div>
+                <div className="flex justify-end mb-4">
+                <button
+                            className="relative bg-[rgba(120,244,190,0.24)] text-white px-2 py-4 rounded-[1.25em] flex items-center justify-center group  w-16"
+                            onClick={() => setIsAdding(true)}
+                          >
+                            <FaPlus className="text-2xl" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certificates.length > 0 ? (
-          certificates.map((certificate, index) => (
-            <div key={index} className="p-6 border rounded-lg shadow-lg bg-white flex flex-col items-center">
-              <h3 className="text-lg font-semibold mb-3">{certificate.title}</h3>
-              <div className="w-full h-52 overflow-hidden rounded-lg border">
-                <img
-                  src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate?.fileId}/view?project=${config.appwriteProjectId}`}
-                  alt={certificate.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex justify-between w-full mt-4">
-                <button className="bg-green-500 text-white px-4 py-2 rounded-md" onClick={() => window.open(`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download?project=${config.appwriteProjectId}`, "_blank")}>
-                  <FaFileDownload className="mr-2" /> Download
-                </button>
-                <button className="bg-red-500 text-white px-4 py-2 rounded-md" onClick={() => dispatch(deleteCertificate(index))}>
-                  <FaTrash className="mr-2" /> Delete
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 text-center">No certificates found.</p>
-        )}
-      </div>
-      {isAdding && (
+                            {/* Tooltip Message */}
+                            <span className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[rgba(0,0,0,0.253)] text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Add Certificate
+                            </span>
+                          </button>
+                  {/* <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+                    onClick={() => setIsAdding(true)}
+                  >
+                    <FaPlus className="mr-2" /> Add Certificate
+                  </button> */}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {certificates.length > 0 ? (
+                    certificates.map((certificate, index) => (
+                      <div
+                        key={index}
+                        className="p-6 border rounded-lg shadow-lg bg-white flex flex-col items-center"
+                      >
+                        <h3 className="text-lg font-semibold mb-3">
+                          {certificate.title}
+                        </h3>
+                        <div className="w-full h-52 overflow-hidden rounded-lg border">
+                          <img
+                            src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate?.fileId}/view?project=${config.appwriteProjectId}`}
+                            alt={certificate.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex justify-between w-full mt-4">
+                          <button
+                            className="relative bg-[rgba(120,244,190,0.24)] text-white px-2 rounded-[1.25em] flex items-center justify-center group  w-16"
+                            onClick={() =>
+                              window.open(
+                                `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download?project=${config.appwriteProjectId}`,
+                                "_blank"
+                              )
+                            }
+                          >
+                            <FaFileDownload className="text-xl" />
+
+                            {/* Tooltip Message */}
+                            <span className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[rgba(0,0,0,0.253)] text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              Download
+                            </span>
+                          </button>
+
+                          <button
+                            className="relative bg-[rgba(232,125,125,0.32)] text-white px-2 py-4 rounded-[1.25em] flex items-center justify-center group  w-16"
+                            onClick={() =>
+                              window.open(
+                                `${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${certificate.fileId}/download?project=${config.appwriteProjectId}`,
+                                "_blank"
+                              )
+                            }
+                          >
+                            <FaTrash className="text-xl" />
+
+                            {/* Tooltip Message */}
+                            <span className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[rgba(0,0,0,0.253)] text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              delete
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-center">
+                      No certificates found.
+                    </p>
+                  )}
+                </div>
+                {isAdding && (
                   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
                       <h3 className="text-2xl font-semibold text-center mb-4">
@@ -659,11 +709,7 @@ const Newprofile = () => {
                     </div>
                   </div>
                 )}
-     
-    </div>
-
-
-                
+              </div>
 
               {/* Projects Section */}
               <div className="bg-gray-200 rounded-lg p-4">
@@ -675,6 +721,9 @@ const Newprofile = () => {
                       onClick={() => {
                         setShowForm(true);
                         setSelectedProject(null);
+                        projectFormRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                        });
                       }}
                     >
                       Add Project
@@ -688,7 +737,13 @@ const Newprofile = () => {
                     <div
                       key={ind}
                       className="border border-gray-300 rounded-lg p-4 cursor-pointer"
-                      onClick={() => setSelectedProject(project)} // Open project details
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setShowForm(false);
+                        projectFormRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                        });
+                      }} // Open project details
                     >
                       <img
                         src={
@@ -772,116 +827,118 @@ const Newprofile = () => {
                 </div>
               )}
               {/* Add/Edit Project Form */}
-              {showForm && isOwner && (
-                <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-                  <h2 className="text-lg font-bold">
-                    {selectedProject ? "Edit Project" : "Add Project"}
-                  </h2>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      if (selectedProject) {
-                        // Handle Edit Logic Here
-                      } else {
-                        dispatch(addProject(newProject));
-                      }
-                      setShowForm(false);
-                    }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label className="block font-bold">Project Title</label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={newProject.title}
-                        onChange={(e) =>
-                          setNewProject({
-                            ...newProject,
-                            title: e.target.value,
-                          })
+              <div ref={projectFormRef} className="mt-10">
+                {showForm && isOwner && (
+                  <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+                    <h2 className="text-lg font-bold">
+                      {selectedProject ? "Edit Project" : "Add Project"}
+                    </h2>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (selectedProject) {
+                          // Handle Edit Logic Here
+                        } else {
+                          dispatch(addProject(newProject));
                         }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold">Description</label>
-                      <textarea
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={newProject.description}
-                        onChange={(e) =>
-                          setNewProject({
-                            ...newProject,
-                            description: e.target.value,
-                          })
-                        }
-                        required
-                      ></textarea>
-                    </div>
-                    <div>
-                      <label className="block font-bold">Technologies</label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={newProject.technologies}
-                        onChange={(e) =>
-                          setNewProject({
-                            ...newProject,
-                            technologies: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold">Thumbnail</label>
-                      <input
-                        type="file"
-                        className="w-full p-2"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          setNewProject({
-                            ...newProject,
-                            thumbnail: file,
-                          });
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold">Images</label>
-                      <input
-                        type="file"
-                        multiple
-                        className="w-full p-2"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files);
-                          setNewProject({
-                            ...newProject,
-                            images: files,
-                          });
-                        }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-[#0e1822] hover:bg-[#ff4655] text-white rounded"
-                      >
-                        Save Project
-                      </button>
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-red-500 text-white rounded"
-                        onClick={() => setShowForm(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+                        setShowForm(false);
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block font-bold">Project Title</label>
+                        <input
+                          type="text"
+                          className="w-full p-2 border border-gray-300 rounded"
+                          value={newProject.title}
+                          onChange={(e) =>
+                            setNewProject({
+                              ...newProject,
+                              title: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold">Description</label>
+                        <textarea
+                          className="w-full p-2 border border-gray-300 rounded"
+                          value={newProject.description}
+                          onChange={(e) =>
+                            setNewProject({
+                              ...newProject,
+                              description: e.target.value,
+                            })
+                          }
+                          required
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block font-bold">Technologies</label>
+                        <input
+                          type="text"
+                          className="w-full p-2 border border-gray-300 rounded"
+                          value={newProject.technologies}
+                          onChange={(e) =>
+                            setNewProject({
+                              ...newProject,
+                              technologies: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold">Thumbnail</label>
+                        <input
+                          type="file"
+                          className="w-full p-2"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            setNewProject({
+                              ...newProject,
+                              thumbnail: file,
+                            });
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold">Images</label>
+                        <input
+                          type="file"
+                          multiple
+                          className="w-full p-2"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files);
+                            setNewProject({
+                              ...newProject,
+                              images: files,
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-[#0e1822] hover:bg-[#ff4655] text-white rounded"
+                        >
+                          Save Project
+                        </button>
+                        <button
+                          type="button"
+                          className="px-4 py-2 bg-red-500 text-white rounded"
+                          onClick={() => setShowForm(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
             </>
           )}
           {role === "Employer" && (

@@ -16,7 +16,7 @@ import {
   FaMoneyBillAlt,
 } from "react-icons/fa";
 import { SlBookOpen } from "react-icons/sl";
-import ProfileComponent from "./profileComponent";
+import ProfileComponent from "./ProfileComponent";
 const JobDetailPage = () => {
   const { jobId } = useParams(); // Get the job ID from the URL
   const [job, setJob] = useState(null);
@@ -69,16 +69,19 @@ const JobDetailPage = () => {
   };
 
   return (
-    <div className=" flex justify-center w-full  bg-yellow-100 ">
+    <div className=" flex justify-center w-full  bg-yellow-100 py-7 ">
       <div className="component w-1/4 sticky">
         {" "}
         <ProfileComponent />
       </div>
 
       <div className="p-6 max-w-3xl mx-5  bg-white shadow-md rounded">
-        <Link to={"/userhomepage"}>
-          <IoHomeOutline className="text-xl lg:text-2xl" />
+        <div className="flex w-full  justify-between">
+        <Link to={"/userhomepage"} className="px-4 py-2 bg-slate-400 rounded-lg">
+          <IoHomeOutline className="text-xl lg:text-2xl " />
         </Link>
+            <button className="px-4 py-2 bg-slate-400 rounded-lg">Apply Now</button>
+        </div>
         <div className=" w-full py-2 ">
           <div className="w-full flex flex-col sm:flex-row  h-[300px] pl-8 ">
             {/* Display Job Image Preview if it exists */}

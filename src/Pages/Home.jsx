@@ -1,4 +1,6 @@
 import React,{useState, useEffect} from 'react';
+import { Link} from "react-router-dom";
+
 import { FaSlack } from "react-icons/fa";
 import { FaSpotify } from "react-icons/fa";
 import { FaHubspot } from "react-icons/fa";
@@ -111,9 +113,20 @@ export default function App() {
 
           <div className='flex justify-between p-5'>
             <span className='text-5xl'>Logo</span>
-            <span >
-              <span className='text-xl border border-black px-5 py-2'>Login</span>
-              <span className='text-xl border border-black px-5 py-2 ms-2'>signup</span>
+            <span className='flex gap-10' >
+            <Link to={"/login"} className="relative flex items-center px-6 py-1 text-2xl font-semibold text-yellow-400 border-2 border-yellow-400 rounded-md cursor-pointer select-none overflow-hidden transition-colors duration-300 hover:text-gray-900 active:border-teal-500 group">
+      <span className="relative z-10">Login</span>
+      <div className="absolute left-0 w-36 aspect-square bg-yellow-400/50 rounded-full -translate-x-32 group-hover:-translate-x-4 transition-transform duration-500"></div>
+      <div className="absolute right-0 w-36 aspect-square bg-yellow-400/50 rounded-full translate-x-32 group-hover:translate-x-4 transition-transform duration-500"></div>
+    </Link>
+              {/* <button className='text-xl border border-black px-5 py-2'>
+                <Link to={"/login"}>Login</Link>
+              </button> */}
+                  <Link to={"/Signup"} className="relative flex items-center px-4 py-1 text-2xl font-semibold text-yellow-400 border-2 border-yellow-400 rounded-md cursor-pointer select-none overflow-hidden transition-colors duration-300 hover:text-gray-900 active:border-teal-500 group">
+      <span className="relative z-10">Signup</span>
+      <div className="absolute left-0 w-36 aspect-square bg-yellow-400/50 rounded-full -translate-x-32 group-hover:-translate-x-4 transition-transform duration-500"></div>
+      <div className="absolute right-0 w-36 aspect-square bg-yellow-400/50 rounded-full translate-x-32 group-hover:translate-x-4 transition-transform duration-500"></div>
+    </Link>
             </span>
           </div>
 

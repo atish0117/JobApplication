@@ -217,7 +217,7 @@ export const addProject = createAsyncThunk(
 //  Fetch User Projects
 export const fetchProjects = createAsyncThunk(
   "form/fetchProjects",
-  async (_, { rejectWithValue }) => {
+  async (userEmail, { rejectWithValue }) => {
     try {
       const email = localStorage.getItem("Token");
       const userResponse = await databases.listDocuments(
