@@ -217,19 +217,38 @@ export const addProject = createAsyncThunk(
 //  Fetch User Projects
 export const fetchProjects = createAsyncThunk(
   "form/fetchProjects",
-  async (userEmail, { rejectWithValue }) => {
+  async (candidateId, { rejectWithValue }) => {
     try {
-      const email = localStorage.getItem("Token");
-      const userResponse = await databases.listDocuments(
-        config.appwriteDatabaseId,
-        config.appwriteCollectionIdJobaryProfileId,
-        [Query.equal("email", email)]
-      );
+      let userResponse;
 
-      if (userResponse.documents.length === 0) {
-        throw new Error("User not found");
+      // If candidateId is provided, fetch projects based on candidateId
+      if (candidateId) {
+        userResponse = await databases.listDocuments(
+          config.appwriteDatabaseId,
+          config.appwriteCollectionIdJobaryProfileId,
+          [Query.equal("$id", candidateId)]
+        );
+      } else {
+        // If candidateId is not provided, fall back to email from localStorage
+        const email = localStorage.getItem("Token");
+
+        if (!email) {
+          throw new Error("No candidate ID provided and no email found in localStorage");
+        }
+
+        userResponse = await databases.listDocuments(
+          config.appwriteDatabaseId,
+          config.appwriteCollectionIdJobaryProfileId,
+          [Query.equal("email", email)]
+        );
       }
 
+      // Check if user/candidate was found
+      if (userResponse.documents.length === 0) {
+        throw new Error(candidateId ? "Candidate not found" : "User not found");
+      }
+
+      // Fetch project details
       const projectIds = userResponse.documents[0].projects || [];
       const projectDetails = await Promise.all(
         projectIds.map((projectId) =>
@@ -463,18 +482,54 @@ export const fetchSingleUserProfile = createAsyncThunk(
 );
 
 // ** Fetch Certificates **
+// export const fetchCertificates = createAsyncThunk(
+//   "form/fetchCertificates",
+//   async (_, { rejectWithValue, getState }) => {
+//     try {
+//       const { profile } = getState().form;
+//       if (!profile) throw new Error("User profile not found");
+
+//       const databases = new Databases(client);
+//       const response = await databases.getDocument(
+//         config.appwriteDatabaseId,
+//         config.appwriteCollectionIdJobaryProfileId,
+//         profile.$id
+//       );
+
+//       // Parse certificates if they exist
+//       const fetchedCertificates = response.certificates
+//         ? response.certificates.map((cert) => JSON.parse(cert))
+//         : [];
+
+//       return fetchedCertificates;
+//     } catch (error) {
+//       console.error("Error fetching certificates:", error.message);
+//       return rejectWithValue(error.message);
+//     }
+//   }
+// );
 export const fetchCertificates = createAsyncThunk(
   "form/fetchCertificates",
-  async (_, { rejectWithValue, getState }) => {
+  async (candidateId, { rejectWithValue, getState }) => {
     try {
-      const { profile } = getState().form;
-      if (!profile) throw new Error("User profile not found");
-
       const databases = new Databases(client);
+      let profileId;
+
+      // If candidateId is provided, use it to fetch certificates
+      if (candidateId) {
+        profileId = candidateId;
+      } else {
+        // If candidateId is not provided, use the logged-in user's profile
+        const { profile } = getState().form;
+        if (!profile) throw new Error("User profile not found");
+        profileId = profile.$id;
+      }
+
+      // Fetch the document from Appwrite
       const response = await databases.getDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionIdJobaryProfileId,
-        profile.$id
+        profileId
       );
 
       // Parse certificates if they exist
@@ -489,7 +544,6 @@ export const fetchCertificates = createAsyncThunk(
     }
   }
 );
-
 
 // ** Add Certificate **
 export const addCertificate = createAsyncThunk(

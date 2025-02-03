@@ -15,7 +15,8 @@ import { fetchUserProfile } from "../../Redux/features/PostServiceF";
 import { Databases, Query, ID,Storage } from "appwrite";
 import config from "../../appWrite/config";
 import client from "../../appWrite/AppwriteConfigPost";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
+import { IoHomeOutline } from "react-icons/io5";
 
 const JobPost = () => {
   // State for form inputs
@@ -161,181 +162,189 @@ const JobPost = () => {
   }
 
   return (
-    <div className="max-w-full mx-auto my-8 p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
-      <h2 className="text-2xl font-semibold text-center mb-6">
-        Create Job Post
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          {/* Input Fields */}
-         
-          {[
-            { id: "jobTitle", icon: FaPen, placeholder: "Job Title" },
-            {
-              id: "companyName",
-              icon: FaBuilding,
-              placeholder: "Company Name",
-            },
-            { id: "sector", icon: FaClipboard, placeholder: "Sector" },
-            { id: "location", icon: FaMapMarkerAlt, placeholder: "Location" },
-            { id: "experience", icon: SlBookOpen, placeholder: "experience" },
-          ].map(({ id, icon: Icon, placeholder }) => (
-            <div key={id} className="flex items-center space-x-2">
-              <Icon className="text-gray-500" />
-              <input
-                type="text"
-                id={id}
-                name={id}
-                value={jobData[id]}
-                onChange={handleChange}
-                placeholder={placeholder}
-                className="p-3 border border-gray-300 rounded-md w-full"
-                required
-              />
-            </div>
-          ))}
-
-            {/* Professional Skills Input */}
-            <div>
-            <label className="text-sm font-medium mb-2 block">
-              Professional Skills
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                placeholder="Add a skill"
-                className="p-3 border border-gray-300 rounded-md w-full"
-              />
-              <button
-                type="button"
-                onClick={handleAddSkill}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-              >
-                Add
-              </button>
-            </div>
-            <div className="mt-4 space-x-2 flex flex-wrap">
-              {jobData.professionalSkills.map((skill, index) => (
-                <span
-                  key={index}
-                  className="flex items-center bg-gray-200 text-gray-800 px-3 py-1 rounded-full space-x-2"
-                >
-                  <span>{skill}</span>
-                  <FaTimes
-                    className="text-red-500 cursor-pointer"
-                    onClick={() => handleRemoveSkill(index)}
-                  />
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Time Dropdown */}
-          <div className="flex items-center space-x-2">
-            <FaClock className="text-gray-500" />
-            <select
-              id="time"
-              name="time"
-              value={jobData.time}
-              onChange={handleChange}
-              className="p-3 border border-gray-300 rounded-md w-full"
-              required
-            >
-              <option value="" disabled>
-                Select Job Time
-              </option>
-              {["Full-Time", "Part-Time", "Night-Shift", "Day-Shift"].map(
-                (time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
-
-          {/* Salary Dropdown */}
-          <div className="flex items-center space-x-2">
-            <FaDollarSign className="text-gray-500" />
-            <select
-              id="salary"
-              name="salary"
-              value={jobData.salary}
-              onChange={handleChange}
-              className="p-3 border border-gray-300 rounded-md w-full"
-              required
-            >
-              <option value="" disabled>
-                Select Salary Range
-              </option>
-              {[
-                "10,000 - 20,000",
-                "20,000 - 30,000",
-                "30,000 - 40,000",
-                "40,000 - 50,000",
-                "50,000 - 60,000",
-                "60,000 - 70,000",
-                "70,000 - 80,000",
-                "80,000 - 90,000",
-                "1 Lakh",
-                "1.5 - 2 Lakhs",
-                "2 - 2.5 Lakhs",
-                "2.5 - 3 Lakhs",
-                "Above 10 Lakhs",
-              ].map((range) => (
-                <option key={range} value={range}>
-                  {range}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Text Areas */}
-          {[
-            { id: "jobDescription", label: "Job Description" },
-            { id: "keyResponsibility", label: "Key Responsibilities" },
-          ].map(({ id, label }) => (
-            <div key={id} className="flex flex-col space-y-2">
-              <label className="text-sm font-medium" htmlFor={id}>
-                {label}
-              </label>
-              <textarea
-                id={id}
-                name={id}
-                value={jobData[id]}
-                onChange={handleChange}
-                placeholder={label}
-                className="p-3 border border-gray-300 rounded-md w-full"
-                required
-              />
-            </div>
-          ))}
-          {/* File Input */}
-          <div className="flex items-center space-x-2">
-            <FaTasks className="text-gray-500" />
-            <input
-              type="file"
-              id="jobFile"
-              name="jobFile"
-              // accept=".pdf,.doc,.docx"
-              onChange={handleFileChange}
-              className="p-3 border border-gray-300 rounded-md w-full"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="mt-6 text-center">
-            <button
-              type="submit"
-              className="px-6 py-3 bg-[#0e1822] text-white font-medium rounded-md hover:bg-[#ff4655] transition duration-300 w-full sm:w-auto"
-            >
-              Create Job Post
-            </button>
-          </div>
-        </div>
-      </form>
+    <div className="max-w-4xl mx-auto my-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
+    {/* Home Button */}
+    <div className="flex justify-end mb-6">
+      <Link
+        to="/userhomepage"
+        className="p-2 bg-[#0e1822] hover:bg-[#ff4655] rounded-full transition duration-300"
+      >
+        <IoHomeOutline className="text-xl text-white" />
+      </Link>
     </div>
+
+    {/* Form Heading */}
+    <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+      Create Job Post
+    </h2>
+
+    {/* Job Post Form */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Input Fields */}
+      {[
+        { id: "jobTitle", icon: FaPen, placeholder: "Job Title" },
+        { id: "companyName", icon: FaBuilding, placeholder: "Company Name" },
+        { id: "sector", icon: FaClipboard, placeholder: "Sector" },
+        { id: "location", icon: FaMapMarkerAlt, placeholder: "Location" },
+        { id: "experience", icon: SlBookOpen, placeholder: "Experience" },
+      ].map(({ id, icon: Icon, placeholder }) => (
+        <div key={id} className="flex items-center space-x-4">
+          <Icon className="text-gray-500 text-xl" />
+          <input
+            type="text"
+            id={id}
+            name={id}
+            value={jobData[id]}
+            onChange={handleChange}
+            placeholder={placeholder}
+            className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+      ))}
+
+      {/* Professional Skills */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Professional Skills
+        </label>
+        <div className="flex items-center space-x-4">
+          <input
+            type="text"
+            value={skillInput}
+            onChange={(e) => setSkillInput(e.target.value)}
+            placeholder="Add a skill"
+            className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={handleAddSkill}
+            className="px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+          >
+            Add
+          </button>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {jobData.professionalSkills.map((skill, index) => (
+            <span
+              key={index}
+              className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm"
+            >
+              {skill}
+              <FaTimes
+                className="ml-2 text-red-500 cursor-pointer hover:text-red-600"
+                onClick={() => handleRemoveSkill(index)}
+              />
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Time Dropdown */}
+      <div className="flex items-center space-x-4">
+        <FaClock className="text-gray-500 text-xl" />
+        <select
+          id="time"
+          name="time"
+          value={jobData.time}
+          onChange={handleChange}
+          className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="" disabled>
+            Select Job Time
+          </option>
+          {["Full-Time", "Part-Time", "Night-Shift", "Day-Shift"].map(
+            (time) => (
+              <option key={time} value={time}>
+                {time}
+              </option>
+            )
+          )}
+        </select>
+      </div>
+
+      {/* Salary Dropdown */}
+      <div className="flex items-center space-x-4">
+        <FaDollarSign className="text-gray-500 text-xl" />
+        <select
+          id="salary"
+          name="salary"
+          value={jobData.salary}
+          onChange={handleChange}
+          className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="" disabled>
+            Select Salary Range
+          </option>
+          {[
+            "10,000 - 20,000",
+            "20,000 - 30,000",
+            "30,000 - 40,000",
+            "40,000 - 50,000",
+            "50,000 - 60,000",
+            "60,000 - 70,000",
+            "70,000 - 80,000",
+            "80,000 - 90,000",
+            "1 Lakh",
+            "1.5 - 2 Lakhs",
+            "2 - 2.5 Lakhs",
+            "2.5 - 3 Lakhs",
+            "Above 10 Lakhs",
+          ].map((range) => (
+            <option key={range} value={range}>
+              {range}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Text Areas */}
+      {[
+        { id: "jobDescription", label: "Job Description" },
+        { id: "keyResponsibility", label: "Key Responsibilities" },
+      ].map(({ id, label }) => (
+        <div key={id} className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            {label}
+          </label>
+          <textarea
+            id={id}
+            name={id}
+            value={jobData[id]}
+            onChange={handleChange}
+            placeholder={label}
+            className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="4"
+            required
+          />
+        </div>
+      ))}
+
+      {/* File Input */}
+      <div className="flex items-center space-x-4">
+        <FaTasks className="text-gray-500 text-xl" />
+        <input
+          type="file"
+          id="jobFile"
+          name="jobFile"
+          onChange={handleFileChange}
+          className="p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* Submit Button */}
+      <div className="text-center">
+        <button
+          type="submit"
+          className="px-6 py-3 bg-[#0e1822] text-white font-medium rounded-md hover:bg-[#ff4655] transition duration-300 w-full sm:w-auto"
+        >
+          Create Job Post
+        </button>
+      </div>
+    </form>
+  </div>
   );
 };
 

@@ -24,7 +24,6 @@ import {
   FaPhoneAlt,
   FaCogs,
   FaIndustry,
-  FaHome,
   FaFileDownload,
   FaTwitter,
   FaGithub,
@@ -32,6 +31,9 @@ import {
   FaEdit,
   FaPlus,
   FaTrash,
+  FaMapMarkerAlt,
+  FaDollarSign,
+  FaCode,
 } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
 import { useRef } from "react";
@@ -585,12 +587,6 @@ const Newprofile = () => {
                             Add Certificate
                             </span>
                           </button>
-                  {/* <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-                    onClick={() => setIsAdding(true)}
-                  >
-                    <FaPlus className="mr-2" /> Add Certificate
-                  </button> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -943,79 +939,77 @@ const Newprofile = () => {
           )}
           {role === "Employer" && (
             <>
-              <div className="max-w-4xl mx-auto my-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
-                {/* Navbar with Home Icon */}
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    Employer Profile
-                  </h1>
-                  <button
-                    onClick={() => navigate("/userhomepage")} // Replace with the actual navigation method
-                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"
-                  >
-                    <FaHome className="text-gray-700 text-2xl" />
-                  </button>
-                </div>
+             <div className="max-w-4xl mx-auto my-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
+  {/* Navbar with Home Icon */}
+  <div className="flex items-center justify-between mb-6">
+    <button className="p-2 bg-[#0e1822] hover:bg-[#ff4655] rounded-full transition duration-300">
+      <Link to="/userhomepage">
+        <IoHomeOutline className="text-xl lg:text-2xl text-white" />
+      </Link>
+    </button>
+  </div>
 
-                {/* Profile Section */}
-                <div className="text-center">
-                  <img
-                    src={profile?.profileImageUrl || "/default-profile.png"} // Fallback image
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full mx-auto mb-4"
-                  />
-                  <h2 className="text-3xl font-bold text-gray-800">
-                    {profile.FullName}
-                  </h2>
-                  <p className="text-xl text-gray-600">
-                    {profile.post} at {profile.orgName}
-                  </p>
-                </div>
+  {/* Profile Section */}
+  <div className="text-center">
+    <img
+      src={profile?.profileImageUrl || "/default-profile.png"}
+      alt="Profile"
+      className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-gray-200 hover:border-[#ff4655] transition duration-300"
+    />
+    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+      {profile.FullName || "Full Name"}
+    </h2>
+    <p className="text-xl text-gray-600">
+      {profile.post || "Position"} at {profile.orgName || "Organization"}
+    </p>
+  </div>
 
-                {/* Details Section */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Reusable Detail Component */}
-                  {[
-                    {
-                      label: "Organization",
-                      icon: FaBuilding,
-                      value: profile.orgName,
-                    },
-                    {
-                      label: "Full Name",
-                      icon: FaUser,
-                      value: profile.FullName,
-                    },
-                    { label: "Email", icon: FaEnvelope, value: profile.email },
-                    {
-                      label: "Contact",
-                      icon: FaPhoneAlt,
-                      value: profile.Contact,
-                    },
-                    { label: "Skills", icon: FaCogs, value: profile.skills },
-                    {
-                      label: "Industry",
-                      icon: FaIndustry,
-                      value: profile.industry,
-                    },
-                  ].map(({ label, icon: Icon, value }, idx) => (
-                    <div key={idx} className="flex items-start space-x-3">
-                      <Icon className="text-gray-500 text-xl mt-1" />
-                      <div>
-                        <h3 className="font-medium text-gray-700">{label}</h3>
-                        <p className="text-gray-600">{value || "N/A"}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+  {/* Details Section */}
+  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+    {[
+      {
+        label: "Organization",
+        icon: FaBuilding,
+        value: profile.orgName,
+      },
+      {
+        label: "Full Name",
+        icon: FaUser,
+        value: profile.FullName,
+      },
+      { label: "Email", icon: FaEnvelope, value: profile.email },
+      {
+        label: "Contact",
+        icon: FaPhoneAlt,
+        value: profile.Contact,
+      },
+      { label: "Skills", icon: FaCogs, value: profile.skills },
+      {
+        label: "Industry",
+        icon: FaIndustry,
+        value: profile.industry,
+      },
+    ].map(({ label, icon: Icon, value }, idx) => (
+      <div
+        key={idx}
+        className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300"
+      >
+        <Icon className="text-gray-500 text-xl mt-1 flex-shrink-0" />
+        <div>
+          <h3 className="font-medium text-gray-700">{label}</h3>
+          <p className="text-gray-600 break-words">{value || "N/A"}</p>
+        </div>
+      </div>
+    ))}
+  </div>
 
-                {/* Edit Profile Button */}
-                <div className="mt-6 text-center">
-                  <button className="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-300">
-                    Edit Profile
-                  </button>
-                </div>
-              </div>
+  {/* Edit Profile Button */}
+  <div className="mt-8 text-center">
+    <button className="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+      Edit Profile
+    </button>
+  </div>
+</div>
 
               {/* Job Posts Section */}
               <div className="max-w-4xl mx-auto my-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
@@ -1029,33 +1023,56 @@ const Newprofile = () => {
                     No job posts found.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Render Job Posts */}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {jobPosts.map((post) => (
                       <div
                         key={post.$id}
-                        className="p-4 bg-gray-50 border border-gray-300 rounded-md shadow-md hover:shadow-lg transition"
+                        className="p-6 bg-gradient-to-r from-white to-gray-100 border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                       >
-                        <h3 className="text-xl font-bold">{post.jobTitle}</h3>
-                        <p className="text-sm text-gray-600">
-                          <strong>Company:</strong> {post.companyName}
+                        {/* Job Title */}
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">{post.jobTitle}</h3>
+                  
+                        {/* Company Name */}
+                        <p className="text-sm text-gray-600 mb-1 flex items-center">
+                          <FaBuilding className="w-4 h-4 mr-2" />
+                          <span className="font-semibold">Company:</span> {post.companyName}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Sector:</strong> {post.sector}
+                  
+                        {/* Sector */}
+                        <p className="text-sm text-gray-600 mb-1">
+                          <span className="font-semibold">Sector:</span> {post.sector}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Location:</strong> {post.location}
+                  
+                        {/* Location */}
+                        <p className="text-sm text-gray-600 mb-1 flex items-center">
+                          <FaMapMarkerAlt className="w-4 h-4 mr-2" />
+                          <span className="font-semibold">Location:</span> {post.location}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Salary:</strong> {post.salary}
+                  
+                        {/* Salary */}
+                        <p className="text-sm text-gray-600 mb-1 flex items-center">
+                          <FaDollarSign className="w-4 h-4 mr-2" />
+                          <span className="font-semibold">Salary:</span> {post.salary}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Skills:</strong> {post.professionalSkills}
+                  
+                        {/* Skills */}
+                        <p className="text-sm text-gray-600 mb-4  items-center">
+                          <span className="font-semibold flex"> <FaCode className="w-4 h-4 mr-2" />Skills:</span> <div className="flex flex-wrap gap-1 mb-4">
+  {post.professionalSkills.map((skill, index) => (
+    <span
+      key={index}
+      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+    >
+      {skill.trim()}
+    </span>
+  ))}
+</div>
                         </p>
-
+                  
                         {/* Delete Button */}
                         <button
-                          className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
                           onClick={() => handleDeleteJobPost(post.$id)}
                         >
                           Delete

@@ -12,6 +12,9 @@ import {
   CiClock2,
   CiLight,
 } from "react-icons/ci";
+import { FaUser, FaEnvelope, FaTools, FaBriefcase, FaMapMarkerAlt, FaGraduationCap, FaCalendarAlt, FaLinkedin, FaGithub } from "react-icons/fa";
+
+
 import { IoIosAddCircleOutline } from "react-icons/io";
 // import Faq from './component/Faq';
 // import FilterModal from './component/FilterModal';
@@ -26,7 +29,7 @@ import { useNavigate } from "react-router-dom";
 import config from "../../appWrite/config";
 import { Databases } from "appwrite";
 import client from "../../appWrite/AppwriteConfigPost";
-import ProfileComponent from "./profileComponent";
+import ProfileComponent from "./ProfileComponent";
 const UserHomePage = () => {
   const [jobPosts, setJobPosts] = useState([]);
   const dispatch = useDispatch();
@@ -72,11 +75,11 @@ const UserHomePage = () => {
   };
   if (status === "loading") return <p>Loading user profiles...</p>;
   // if (status === "failed") return <p>Error: {error}</p>;
-  console.log("jobspost",jobPosts)
+  console.log("jobspost", jobPosts);
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-lvh mx-5 lg:mx-20 py-5">
-        <ProfileComponent/>
+        <ProfileComponent />
         {/* Jobs Section */}
         <div className="jobs-by-skills flex flex-col grow bg-white py-5 px-3 lg:px-5 shadow-xl rounded border border-black w-full lg:overflow-y-scroll">
           {/* <JobPost role={role} /> */}
@@ -116,9 +119,10 @@ const UserHomePage = () => {
                   <div className="flex justify-between">
                     <div className="flex gap-2 items-center">
                       <span className="h-16 w-16 lg:h-20 lg:w-20 border border-black rounded-full bg-center bg-contain overflow-hidden">
-                        <img src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${jobs.jobFile}/view?project=${config.appwriteProjectId}`}
-                        alt={jobs.jobTitle}
-                        className="w-20 h-20 "
+                        <img
+                          src={`${config.appwriteUrl}/storage/buckets/${config.appwriteBucketId}/files/${jobs.jobFile}/view?project=${config.appwriteProjectId}`}
+                          alt={jobs.jobTitle}
+                          className="w-20 h-20 "
                         />
                       </span>
                       <div className="flex flex-col">
@@ -156,7 +160,7 @@ const UserHomePage = () => {
           )}
           {role === "Employer" && (
             <div className="max-w-full mx-auto p-6 border border-gray-200 rounded-lg shadow-lg bg-white">
-              // Candidate List View
+              {/* Candidate List View */}
               <div>
                 <h2 className="text-2xl font-semibold text-center mb-6 underline">
                   Candidate Profiles
@@ -166,31 +170,96 @@ const UserHomePage = () => {
                     No user profiles found.
                   </p>
                 ) : (
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {profiles?.map((profile) => (
                       <Link
                         to={`/viewProfile/${profile?.$id}`}
                         key={profile?.$id}
-                        className="p-4 border border-gray-300 rounded-md shadow-md cursor-pointer"
+                        className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                         onClick={() => handleCandidateClick(profile)}
                       >
-                        <h3 className="text-xl font-bold">
-                          <strong className="text-sm text-gray-600">
-                            Name:
-                          </strong>{" "}
-                          {profile?.FullName}
+                        {/* Candidate Name */}
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
+                          <FaUser className="w-4 h-4 mr-2 text-blue-500" />
+                          <span>{profile?.FullName}</span>
                         </h3>
-                        <p className="text-sm text-gray-600">
-                          <strong>Email:</strong> {profile?.email}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Skills:</strong>{" "}
-                          {profile?.skills?.join(", ") || "N/A"}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Experience:</strong>{" "}
-                          {profile?.experience || "N/A"}
-                        </p>
+                  
+                        {/* Email and Location */}
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-600 flex items-center mb-1">
+                            <FaEnvelope className="w-3 h-3 mr-2 text-blue-500" />
+                            <span>{profile?.email}</span>
+                          </p>
+                          <p className="text-xs text-gray-600 flex items-center">
+                            <FaMapMarkerAlt className="w-3 h-3 mr-2 text-blue-500" />
+                            <span>{profile?.Address || "Location not specified"}</span>
+                          </p>
+                        </div>
+                  
+                        {/* Experience and Education */}
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-600 flex items-center mb-1">
+                            <FaBriefcase className="w-3 h-3 mr-2 text-blue-500" />
+                            <span>Experience: {profile?.experience || "N/A"}</span>
+                          </p>
+                          <p className="text-xs text-gray-600 flex items-center">
+                            <FaGraduationCap className="w-3 h-3 mr-2 text-blue-500" />
+                            <span>{profile?.Education || "Education not specified"}</span>
+                          </p>
+                        </div>
+                  
+                        {/* Skills */}
+                        <div className="mb-2">
+                          <h4 className="text-xs font-semibold text-gray-600 mb-1 flex items-center">
+                            <FaTools className="w-3 h-3 mr-2 text-blue-500" />
+                            Skills
+                          </h4>
+                          <div className="flex flex-wrap gap-1">
+                            {profile?.skills?.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
+                                {skill.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                  
+                        {/* Social Media Links */}
+                        <div className="mb-2">
+                          <h4 className="text-xs font-semibold text-gray-600 mb-1 flex items-center">
+                            Connect
+                          </h4>
+                          <div className="flex gap-2">
+                            {profile?.linkedin && (
+                              <a
+                                href={profile.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-500 hover:text-blue-500 transition-colors duration-200"
+                              >
+                                <FaLinkedin className="w-4 h-4" />
+                              </a>
+                            )}
+                            {profile?.github && (
+                              <a
+                                href={profile.github}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-500 hover:text-blue-500 transition-colors duration-200"
+                              >
+                                <FaGithub className="w-4 h-4" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                  
+                        {/* View Profile Button */}
+                        <button className="w-full px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                          View Profile
+                        </button>
                       </Link>
                     ))}
                   </div>
